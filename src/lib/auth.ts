@@ -12,13 +12,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     verifyRequest: '/verify',
     newUser: '/dashboard',
   },
-  callbacks: {
-    session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-      }
-      return session;
-    },
-  },
+
   ...authConfig,
 });

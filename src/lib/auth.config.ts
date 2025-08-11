@@ -50,4 +50,12 @@ export default {
       },
     }),
   ],
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user && user) {
+        session.user.id = user.id;
+      }
+      return session;
+    },
+  },
 } satisfies NextAuthConfig;
