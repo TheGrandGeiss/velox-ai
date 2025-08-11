@@ -70,15 +70,11 @@ const Onboarding = () => {
   const handleNext = async () => {
     let isValid = false;
 
-    // Await validation for the current step
     switch (step) {
       case 1:
-        // No fields to validate in step 1. You can add this if you want to validate
-        // something like an agreement checkbox, but for now, we'll assume it's always valid to proceed.
         isValid = true;
         break;
       case 2:
-        // Trigger validation for the fields in step 2
         isValid = await form.trigger(['username', 'dob', 'mainGoal']);
         break;
       // Add a case for step 3 if you had a next button for it
@@ -87,7 +83,6 @@ const Onboarding = () => {
       //   break;
     }
 
-    // If validation passes, increment the step
     if (isValid) {
       setStep((prev) => prev + 1);
     }

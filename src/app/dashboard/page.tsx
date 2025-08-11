@@ -1,14 +1,12 @@
+import Dashboard from '@/components/blocks/dashboard/dashboard';
 import React from 'react';
 
-const Dashboard = () => {
+const page = () => {
   return (
     <div className='flex flex-col justify-center items-center h-screen'>
-      <h1 className='text-2xl font-bold mb-4'>Welcome to Dashboard!</h1>
-      <p className='text-gray-600'>
-        Your account has been created successfully.
-      </p>
+      <Dashboard />
     </div>
   );
 };
 
-export default Dashboard;
+export default page;

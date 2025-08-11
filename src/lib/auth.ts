@@ -10,7 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/sign-up',
     error: '/api/auth/error',
     verifyRequest: '/verify',
-    newUser: '/dashboard',
+    newUser: '/onboarding',
   },
 
   ...authConfig,
