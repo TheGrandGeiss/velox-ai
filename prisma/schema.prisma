@@ -84,10 +84,10 @@ model Authenticator {
 }
 
 model Profile {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique @db.ObjectId
-
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  user              User              @relation(fields: [userId], references: [id])
+  userId            String            @unique @db.ObjectId
+  image             String?
   username          String
   dob               DateTime
   maxSessionLength  String // in minutes (30, 60, 90, 120)
