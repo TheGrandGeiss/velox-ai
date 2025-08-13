@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar1 } from '@/components/ui/calendar-1';
 import { CalendarSkeleton } from './calendarSkeleton';
 
 export default function Calendar01() {
@@ -22,12 +22,12 @@ export default function Calendar01() {
   }
 
   return (
-    <Calendar
+    <Calendar1
       mode='single'
       defaultMonth={date}
       selected={date}
       onSelect={setDate}
-      className='rounded-lg border shadow-sm w-full'
+      className='rounded-md border-[0.001px]  border-white/10  w-full'
     />
   );
 }

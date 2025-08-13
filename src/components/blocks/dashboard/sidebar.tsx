@@ -15,7 +15,7 @@ const Sidebar = async () => {
 
   return (
     <aside className='h-screen space-y-8 p-6'>
-      <Card className='py-3 px-0'>
+      <Card className='py-3 px-0 bg-customBG'>
         <CardContent>
           <div className='flex gap-4 items-center rounded-md'>
             {' '}
@@ -38,10 +38,10 @@ const Sidebar = async () => {
             )}
             <div>
               {' '}
-              <h4 className='text-lg text-black font-semibold'>
+              <h4 className='text-lg text-white font-semibold '>
                 {session.user?.name}
               </h4>
-              <p className='text-sm text-gray-400'>{session.user?.email}</p>
+              <p className='text-sm text-white/40'>{session.user?.email}</p>
             </div>
           </div>
         </CardContent>

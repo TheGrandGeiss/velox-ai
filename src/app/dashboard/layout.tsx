@@ -4,7 +4,7 @@ import React from 'react';
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-      <div className='flex justify-start items-start h-screen w-full gap-8 '>
+      <div className='flex justify-start items-start h-screen w-full gap-8 bg-customBG '>
         <div className='w-3/12'>
           <Sidebar />
         </div>
