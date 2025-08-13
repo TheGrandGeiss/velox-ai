@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import React from 'react';
 import profile from '@/assets/profile-dummy.png';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar01 } from './sidebarCalendar';
+import Calendar01 from './sidebarCalendar';
 
 const Sidebar = async () => {
   const session = await auth();
@@ -15,9 +15,9 @@ const Sidebar = async () => {
 
   return (
     <aside className='h-screen space-y-8 p-6'>
-      <Card className='py-3'>
+      <Card className='py-3 px-0'>
         <CardContent>
-          <div className='flex gap-8 items-center rounded-md '>
+          <div className='flex gap-4 items-center rounded-md'>
             {' '}
             {session?.user?.image ? (
               <Image

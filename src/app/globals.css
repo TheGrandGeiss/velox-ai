@@ -42,6 +42,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --color-base: #720455;
+  --color-customBG: #0c0c0c;
 }
 
 :root {

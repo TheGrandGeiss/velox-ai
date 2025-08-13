@@ -1,22 +1,25 @@
 'use client';
 
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Calendar } from '@/components/ui/calendar';
+import { CalendarSkeleton } from './calendarSkeleton';
 
-export function Calendar01() {
-  const [date, setDate] = React.useState<Date | undefined>(undefined);
+export default function Calendar01() {
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isloaded, setIsLoaded] = useState<boolean>(false);
 
-  React.useEffect(() => {
-    const today = new Date();
-    const date = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    );
-
-    setDate(date);
+  useEffect(() => {
+    setIsLoaded(true);
   });
+
+  if (!isloaded) {
+    return (
+      <div>
+        <CalendarSkeleton />
+      </div>
+    );
+  }
 
   return (
     <Calendar
