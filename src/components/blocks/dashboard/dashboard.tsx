@@ -29,6 +29,21 @@ const Dashboard = () => {
             editable={true}
             events={myEvents}
             height={'90vh'}
+            headerToolbar={{
+              left: 'title today prev,next',
+              center: '',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+            }}
+            buttonText={{
+              today: 'Today',
+              month: 'Month',
+              week: 'Week',
+              day: 'Day',
+            }}
+            titleFormat={{ year: 'numeric', month: 'short' }} // "August 2025"
+            selectable={true}
+            selectMirror={true}
+            nowIndicator={true}
           />
         </div>
       </div>

@@ -1,9 +1,10 @@
 import Dashboard from '@/components/blocks/dashboard/dashboard';
 import React from 'react';
+import './calendar.css';
 
 const page = () => {
   return (
-    <div className='flex flex-col justify-center items-center h-screen'>
+    <div className='flex justify-start items-start h-screen'>
       <Dashboard />
     </div>
   );

@@ -27,7 +27,10 @@ export default function Calendar01() {
       defaultMonth={date}
       selected={date}
       onSelect={setDate}
-      className='rounded-md border-[0.001px]  border-white/10  w-full'
+      navLayout='after'
+      fixedWeeks={false}
+      showOutsideDays={false}
+      className='rpx-6 py-4 bg-customBG w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] shadow-gray-500/30'
     />
   );
 }
