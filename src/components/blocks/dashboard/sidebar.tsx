@@ -17,7 +17,7 @@ const Sidebar = async () => {
 
   return (
     <aside className='h-screen space-y-8 p-6'>
-      <div className=' px-6 py-4 bg-customBG w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] '>
+      <div className=' px-6 py-3 bg-customBG w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] '>
         <div className='flex gap-4 items-center rounded-md class w-full'>
           {' '}
           {session?.user?.image ? (
