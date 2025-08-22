@@ -10,76 +10,29 @@ import '../../../app/dashboard/calendar.css';
 const Dashboard = () => {
   const myEvents = [
     {
-      title: 'Doctor App Design',
-      start: '2024-12-16T09:00:00',
-      end: '2024-12-16T11:00:00',
-      className: 'fc-event-doctor-app',
-      extendedProps: {
-        category: 'Design',
-        description: 'UI/UX design for medical application',
-      },
+      title: 'Morning Workout',
+      start: '2025-08-19T07:00:00',
+      end: '2025-08-19T08:00:00',
     },
     {
-      title: 'Learning Time',
-      start: '2024-12-16T11:30:00',
-      end: '2024-12-16T13:00:00',
-      className: 'fc-event-learning',
-      extendedProps: {
-        category: 'Education',
-        description: 'Study session for new technologies',
-      },
+      title: 'Team Meeting',
+      start: '2025-08-19T09:00:00',
+      end: '2025-08-19T10:00:00',
     },
     {
-      title: 'Child Care Web Design',
-      start: '2024-12-16T14:00:00',
-      end: '2024-12-16T16:00:00',
-      className: 'fc-event-childcare',
-      extendedProps: {
-        category: 'Design',
-        description: 'Website design for childcare services',
-      },
+      title: 'Coding Session',
+      start: '2025-08-19T11:00:00',
+      end: '2025-08-19T13:00:00',
     },
     {
-      title: 'Breakfast',
-      start: '2024-12-16T07:00:00',
-      end: '2024-12-16T08:00:00',
-      className: 'fc-event-breakfast',
-      extendedProps: {
-        category: 'Personal',
-        description: 'Morning meal and planning',
-      },
+      title: 'Lunch Break',
+      start: '2025-08-19T13:00:00',
+      end: '2025-08-19T14:00:00',
     },
     {
-      title: 'Meeting with UI/UX Team',
-      start: '2024-12-16T15:00:00',
-      end: '2024-12-16T16:30:00',
-      className: 'fc-event-meeting-team',
-      extendedProps: {
-        category: 'Meeting',
-        description: 'Team collaboration session',
-        location: 'Google Meet',
-        participants: ['John Doe', 'Jane Smith', 'Mike Johnson'],
-      },
-    },
-    {
-      title: 'Project Deadline',
-      start: '2024-12-17T17:00:00',
-      end: '2024-12-17T18:00:00',
-      className: 'fc-event-task',
-      extendedProps: {
-        category: 'Work',
-        description: 'Final project submission',
-      },
-    },
-    {
-      title: 'Client Call',
-      start: '2024-12-18T10:00:00',
-      end: '2024-12-18T11:00:00',
-      className: 'fc-event-meeting',
-      extendedProps: {
-        category: 'Meeting',
-        description: 'Client consultation call',
-      },
+      title: 'Reading Time',
+      start: '2025-08-19T17:00:00',
+      end: '2025-08-19T18:00:00',
     },
   ];
 

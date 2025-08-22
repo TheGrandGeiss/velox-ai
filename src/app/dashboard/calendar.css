@@ -8,8 +8,8 @@
 }
 
 /* FullCalendar Dark Theme - Calendar Dashboard Style */
-.fc-view {
-  all: unset;
+.fc-timegrid-event-harness {
+  border: none;
 }
 
 [data-custom-calendar] {
@@ -126,4 +126,41 @@
 
 [data-custom-calendar] .fc-day-today .fc-day-header {
   @apply bg-base;
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness .fc-event {
+  @apply text-customBG rounded-2xl h-full border-none;
+}
+[data-custom-calendar] .fc-timegrid-event-harness-inset {
+  @apply border-none;
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness {
+  @apply border-none;
+}
+[data-custom-calendar] .fc-timegrid-slot {
+  @apply my-4;
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main {
+  @apply bg-emerald-200 text-customBG rounded-2xl h-full border-none;
+}
+[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main-frame {
+  @apply px-2 py-2;
+}
+[data-custom-calendar]
+  .fc-timegrid-event-harness
+  .fc-event-main-frame
+  .fc-event-time {
+  @apply text-sm text-gray-500;
+}
+[data-custom-calendar]
+  .fc-timegrid-event-harness
+  .fc-event-main-frame
+  .fc-event-title {
+  @apply text-lg py-1.5 text-customBG;
+}
+
+[data-custom-calendar] .fc-timegrid-body {
+  @apply mt-6;
 }
