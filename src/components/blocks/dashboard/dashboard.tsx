@@ -49,9 +49,9 @@ const Dashboard = () => {
             events={myEvents}
             height={'97vh'}
             headerToolbar={{
-              left: 'title prev,next',
+              left: 'title today prev,next',
               center: '',
-              right: 'today dayGridMonth,timeGridWeek,timeGridDay',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay',
             }}
             buttonText={{
               today: 'Today',

@@ -2,63 +2,73 @@
 @import 'tw-animate-css';
 
 @theme inline {
-  --color-base: #c45ab3;
-  --color-customBlue: #0f1a2b;
-  --color-customBG: #1a1423;
+  --color-calprimary: #3b82f6;
+  --color-light: #dbeafe;
+  --color-calsecondary: #6b7280;
+  --color-calbackground: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #1f2937;
+  --color-text-muted: #6b7280;
 }
 
-/* FullCalendar Dark Theme - Calendar Dashboard Style */
+/* FullCalendar Light Theme - Clean & Modern */
 .fc-timegrid-event-harness {
   border: none;
 }
 
 [data-custom-calendar] {
-  @apply text-white mx-auto max-w-[96%];
+  @apply text-gray-800 mx-auto max-w-[96%];
+}
+
+/* Toolbar styling */
+[data-custom-calendar] .fc-toolbar {
+  @apply py-6 pt-8 mb-4;
 }
 
 [data-custom-calendar] .fc-toolbar-chunk {
-  @apply flex gap-4;
+  @apply flex items-center justify-center gap-3;
 }
 
+/* Navigation buttons */
 [data-custom-calendar] .fc-toolbar-chunk .fc-button-group .fc-prev-button,
 [data-custom-calendar] .fc-toolbar-chunk .fc-button-group .fc-next-button {
-  @apply bg-transparent border-none;
+  @apply bg-white border border-gray-200 text-gray-600 text-lg rounded-lg px-3 py-2 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm;
 }
 
+/* View buttons */
 [data-custom-calendar]
   .fc-toolbar-chunk
   .fc-button-group
   .fc-dayGridMonth-button {
-  @apply bg-gray-700/30 border-none px-8 rounded-tl-3xl rounded-bl-3xl aria-pressed:bg-base aria-pressed:rounded-3xl;
+  @apply bg-white border border-gray-200 px-6 py-2.5 rounded-l-lg text-gray-700 hover:bg-gray-50 aria-pressed:bg-blue-500 aria-pressed:text-white aria-pressed:border-blue-500 transition-colors shadow-sm;
 }
-[data-custom-calendar]
-  .fc-toolbar-chunk
-  .fc-button-group
-  .fc-timeGridDay-button {
-  @apply bg-gray-700/30 border-none px-8 rounded-tr-3xl rounded-br-3xl aria-pressed:bg-base aria-pressed:rounded-3xl;
-}
-[data-custom-calendar] .fc-toolbar-chunk:last-of-type .fc-button-group {
-  @apply bg-gray-700/30 rounded-3xl;
-}
+
 [data-custom-calendar]
   .fc-toolbar-chunk
   .fc-button-group
   .fc-timeGridWeek-button {
-  @apply bg-gray-700/30 border-none px-8 aria-pressed:bg-base aria-pressed:rounded-3xl;
+  @apply bg-white border-t border-b border-gray-200 px-6 py-2.5 text-gray-700 hover:bg-gray-50 aria-pressed:bg-blue-500 aria-pressed:text-white aria-pressed:border-blue-500 transition-colors shadow-sm;
 }
 
+[data-custom-calendar]
+  .fc-toolbar-chunk
+  .fc-button-group
+  .fc-timeGridDay-button {
+  @apply bg-white border border-gray-200 px-6 py-2.5 rounded-r-lg text-gray-700 hover:bg-gray-50 aria-pressed:bg-blue-500 aria-pressed:text-white aria-pressed:border-blue-500 transition-colors shadow-sm;
+}
+
+/* Today button */
 [data-custom-calendar] .fc-toolbar-chunk .fc-today-button {
-  @apply bg-base rounded-md px-6 py-2.5;
+  @apply bg-blue-500 text-white rounded-lg px-6 py-2.5 border-none hover:bg-blue-600 transition-colors shadow-sm;
 }
 
+/* Title */
 [data-custom-calendar] .fc-toolbar-chunk .fc-toolbar-title {
-  @apply font-bold;
+  @apply font-bold text-2xl text-gray-800;
 }
 
-[data-custom-calendar] .fc-toolbar {
-  @apply py-4 pt-12;
-}
-
+/* Calendar container */
 [data-custom-calendar]
   .fc-view-harness
   .fc-view
@@ -68,99 +78,151 @@
 
 [data-custom-calendar] .fc-view-harness .fc-view .fc-scrollgrid {
   border: none;
-  @apply px-6 py-4 bg-customBG w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)];
+  @apply bg-white rounded-xl shadow-lg border border-gray-100;
 }
 
+[data-custom-calendar] .fc td,
+[data-custom-calendar] .fc th {
+  border: 1px solid #f1f5f9;
+}
+
+/* Day headers */
+[data-custom-calendar] .fc-day-header {
+  @apply bg-gray-50 py-4 px-6 border-b border-gray-200 flex gap-2 w-full;
+}
+
+[data-custom-calendar] .fc-day-header .day-num {
+  @apply text-2xl font-semibold text-gray-800;
+}
+
+[data-custom-calendar] .fc-day-header .day-name {
+  @apply text-lg flex items-end font-medium text-gray-600 uppercase tracking-wide;
+}
+
+/* Today highlight */
+[data-custom-calendar] .fc-day-today .fc-day-header {
+  @apply bg-blue-50 border-blue-200;
+}
+
+[data-custom-calendar] .fc-day-today .fc-day-header .day-num {
+  @apply text-blue-600;
+}
+
+[data-custom-calendar] .fc-day-today .fc-day-header .day-name {
+  @apply text-blue-500;
+}
+
+/* Time slots */
+[data-custom-calendar]
+  .fc-scroller
+  .fc-timegrid-body
+  .fc-timegrid-slots
+  .fc-timegrid-slot {
+  @apply py-4;
+  border-top: 1px solid #f1f5f9;
+}
+
+[data-custom-calendar] .fc-timegrid-slot-label {
+  @apply text-gray-500 text-sm font-medium;
+}
+
+/* Events */
+[data-custom-calendar] .fc-timegrid-event-harness {
+  @apply border-none;
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness-inset {
+  @apply border-none;
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness .fc-event {
+  @apply text-white rounded-lg border-none shadow-sm;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main {
+  @apply bg-transparent rounded-lg border-none;
+}
+
+[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main-frame {
+  @apply px-3 py-2;
+}
+
+[data-custom-calendar]
+  .fc-timegrid-event-harness
+  .fc-event-main-frame
+  .fc-event-time {
+  @apply text-xs text-blue-100 font-medium;
+}
+
+[data-custom-calendar]
+  .fc-timegrid-event-harness
+  .fc-event-main-frame
+  .fc-event-title {
+  @apply text-sm font-semibold text-white py-1;
+}
+
+/* Now indicator */
+[data-custom-calendar] .fc-day-today .fc-timegrid-now-indicator-container {
+  @apply bg-light;
+}
+
+[data-custom-calendar] .fc-timegrid-now-indicator-line {
+  @apply border-red-500;
+}
+
+[data-custom-calendar] .fc-timegrid-now-indicator-arrow {
+  @apply border-r-red-500;
+}
+
+/* Body spacing */
+[data-custom-calendar] .fc-timegrid-body {
+  @apply mt-2;
+}
+
+/* Remove default borders */
 [data-custom-calendar] {
   @apply border-none;
 }
 
 [data-custom-calendar] .fc-view-harness .fc-view .fc-scrollgrid tbody {
   border: none;
-  /* @apply px-6 py-4 bg-customBG w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)]; */
 }
 
-/* [data-custom-calendar] .fc {
-  border: none;
+/* Hover effects for interactive elements */
+[data-custom-calendar] .fc-daygrid-day:hover {
+  @apply bg-gray-50;
+}
+
+/* Event hover effect */
+[data-custom-calendar] .fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  [data-custom-calendar] .fc-toolbar {
+    @apply flex-col gap-4;
+  }
+
+  [data-custom-calendar] .fc-toolbar-chunk {
+    @apply justify-center;
+  }
+
+  [data-custom-calendar] .fc-day-header .day-num {
+    @apply text-xl;
+  }
+
+  [data-custom-calendar] .fc-day-header .day-name {
+    @apply text-sm;
+  }
+}
+
+/* [data-custom-calendar]
+  .fc-scrollgrid-sync-inner
+  .fc-col-header-cell-cushion
+  .fc-day-header {
+  @apply max-w-full;
 } */
-
-[data-custom-calendar] .fc td,
-[data-custom-calendar] .fc th {
-  border: none;
-}
-
-/* [data-custom-calendar].fc-ltr .fc-h-event.fc-not-end,
-[data-custom-calendar].fc-rtl .fc-h-event.fc-not-start {
-  opacity: 0.65 t;
-  margin-left: 12px;
-  padding: 5px;
-} */
-
-[data-custom-calendar]
-  .fc-scroller
-  .fc-timegrid-body
-  .fc-timegrid-slots
-  .fc-timegrid-slot {
-  @apply py-6;
-}
-
-[data-custom-calendar] .fc-day-today .fc-timegrid-now-indicator-container {
-  @apply bg-customBG/90;
-}
-
-[data-custom-calendar] .fc-day-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  @apply bg-gray-700/30 py-6 px-10 rounded-2xl;
-}
-
-[data-custom-calendar] .fc-day-header .day-num {
-  @apply text-3xl font-semibold;
-}
-
-[data-custom-calendar] .fc-day-header .day-name {
-  @apply text-xl;
-}
-
-[data-custom-calendar] .fc-day-today .fc-day-header {
-  @apply bg-base;
-}
-
-[data-custom-calendar] .fc-timegrid-event-harness .fc-event {
-  @apply text-customBG rounded-2xl h-full border-none;
-}
-[data-custom-calendar] .fc-timegrid-event-harness-inset {
-  @apply border-none;
-}
-
-[data-custom-calendar] .fc-timegrid-event-harness {
-  @apply border-none;
-}
-[data-custom-calendar] .fc-timegrid-slot {
-  @apply my-4;
-}
-
-[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main {
-  @apply bg-emerald-200 text-customBG rounded-2xl h-full border-none;
-}
-[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main-frame {
-  @apply px-2 py-2;
-}
-[data-custom-calendar]
-  .fc-timegrid-event-harness
-  .fc-event-main-frame
-  .fc-event-time {
-  @apply text-sm text-gray-500;
-}
-[data-custom-calendar]
-  .fc-timegrid-event-harness
-  .fc-event-main-frame
-  .fc-event-title {
-  @apply text-lg py-1.5 text-customBG;
-}
-
-[data-custom-calendar] .fc-timegrid-body {
-  @apply mt-6;
-}

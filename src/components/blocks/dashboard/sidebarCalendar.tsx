@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { Calendar1 } from '@/components/ui/calendar-1';
+import { Calendar } from '@/components/ui/calendar';
 import { CalendarSkeleton } from './calendarSkeleton';
 
 export default function Calendar01() {
@@ -22,7 +22,7 @@ export default function Calendar01() {
   }
 
   return (
-    <Calendar1
+    <Calendar
       mode='single'
       defaultMonth={date}
       selected={date}
@@ -30,7 +30,7 @@ export default function Calendar01() {
       navLayout='after'
       fixedWeeks={false}
       showOutsideDays={false}
-      className='rpx-6 py-4 bg-customBG w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] shadow-gray-500/30'
+      className='w-full shadow-[0_0_5px_rgba(107,114,128,0.3)] bg-blue-50 rounded-2xl '
     />
   );
 }

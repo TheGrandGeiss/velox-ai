@@ -13,11 +13,10 @@ const page = () => {
           height={30}
           width={200}
         />
-        <h4 className='text-white text-4xl pt-2'>
-          Welcome <span className='text-base'>Aboard</span>🚀
-        </h4>
-        <p className='text-white text-4xl py-3'>
-          Let&apos;s turn your plans into a clear schedule
+        <h4 className='text-gray-800 text-4xl pt-2'>Great, You're here!</h4>
+        <p className='text-gray-500 text-2xl py-3'>
+          Let&apos;s turn your tasks into a{' '}
+          <span className='text-2xl'>clear schedule</span>
         </p>
       </div>
     </main>
