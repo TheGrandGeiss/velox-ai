@@ -49,7 +49,7 @@ const Sidebar = async () => {
       <Calendar01 />
       <div className='text-white px-6 py-4 bg-blue-50 w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] text-center flex justify-center items-center text-xl'>
         <Link
-          href={'/dashboard/schedule'}
+          href={'/schedule'}
           className='flex gap-4 justify-center items-center text-center w-full text-gray-800'>
           <span>Create Schedule</span>
           <IoIosAdd size={30} />{' '}
