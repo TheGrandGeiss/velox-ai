@@ -97,8 +97,25 @@ model Profile {
   sleepTime         String
   // availability      Json
 
+  messages Message[] // 🔑 Profile has many messages
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  role      Role // "user" or "ai"
+  content   String
+  createdAt DateTime @default(now())
+
+  profileId String  @db.ObjectId
+  profile   Profile @relation(fields: [profileId], references: [id])
+}
+
+enum Role {
+  user
+  ai
 }
 
 enum WeekendPreference {

@@ -1,17 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@theme inline {
-  --color-calprimary: #3b82f6;
-  --color-light: #dbeafe;
-  --color-calsecondary: #6b7280;
-  --color-calbackground: #f8fafc;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-text: #1f2937;
-  --color-text-muted: #6b7280;
-}
-
 /* FullCalendar Light Theme - Clean & Modern */
 .fc-timegrid-event-harness {
   border: none;
@@ -163,9 +152,9 @@
 }
 
 /* Now indicator */
-[data-custom-calendar] .fc-day-today .fc-timegrid-now-indicator-container {
+/* [data-custom-calendar] .fc-day-today .fc-timegrid-now-indicator-container {
   @apply bg-light;
-}
+} */
 
 [data-custom-calendar] .fc-timegrid-now-indicator-line {
   @apply border-red-500;

@@ -93,9 +93,9 @@ const SignUp = () => {
             />
             <Button
               type='submit'
-              className='w-full text-white bg-base font-semibold py-8 text-xl flex gap-4'>
+              className='w-full text-white bg-calprimary font-semibold py-8 text-xl flex gap-4'>
               <span>
-                <CiMail size={36} />
+                <CiMail className='size-8' />
               </span>{' '}
               <span>Continue with email</span>
             </Button>
@@ -106,13 +106,15 @@ const SignUp = () => {
               <div className='h-[1px] w-full bg-gray-300'></div>
             </div>
 
-            <button
+            <Button
               onClick={() => {
                 signIn('google');
-              }}>
+              }}
+              className='bg-gray-800 text-white text-center flex gap-3 my-2 w-full py-8'>
               {' '}
-              <FcGoogle size={24} />
-            </button>
+              <FcGoogle className='size-8' />
+              <span className='text-xl'>Continue With Google</span>
+            </Button>
           </form>
         </Form>
       </section>

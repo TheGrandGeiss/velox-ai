@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { createProfile } from '@/lib/actions/profileAction';
+import { redirect } from 'next/navigation';
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -95,6 +96,7 @@ const Onboarding = () => {
   const onSubmit = async (values: userPreferenceType) => {
     // This will only be called on the final step
     await createProfile(values);
+    redirect('/dashboard');
     // Add success handling, e.g., redirecting the user
     console.log('Form submitted successfully!', values);
   };
