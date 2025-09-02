@@ -7,6 +7,7 @@ import { prisma } from '@/prisma';
 const resend = new ResendClient(process.env.AUTH_RESEND_KEY);
 
 export default {
+  trustHost: true,
   providers: [
     Google,
     Resend({
@@ -39,7 +40,7 @@ export default {
       Sign In
     </a>
     <p style="font-size: 12px; color: #666; margin-top: 32px;">
-      If you didn’t request this, feel free to ignore it.
+      If you didn't request this, feel free to ignore it.
     </p>
   </div>
 `,
