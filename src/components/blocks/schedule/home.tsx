@@ -69,9 +69,7 @@ const ScheduleHome = () => {
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify(
-          'i need to sleep tomorrow morning, read at night and workout in the afternoon'
-        ),
+        body: JSON.stringify({ content: message.content }),
       });
 
       if (!uploadResponse.ok) {
@@ -168,17 +166,21 @@ const ScheduleHome = () => {
             <div className='flex-1 px-6'>
               {/* Messages display area */}
               <div className='space-y-4'>
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-calprimary text-white ml-auto max-w-xs'
-                        : 'bg-gray-200 text-gray-800 mr-auto max-w-xs'
-                    }`}>
-                    {message.content}
-                  </div>
-                ))}
+                {messages.map((message, index) =>
+                  message.role === 'user' ? (
+                    <div
+                      key={index}
+                      className='bg-calprimary text-white ml-auto max-w-xs p-4 rounded-lg'>
+                      {message.content}
+                    </div>
+                  ) : (
+                    <div
+                      key={index}
+                      className='bg-gray-200 text-gray-800 mr-auto max-w-xs p-4 rounded-lg'>
+                      Schedule has been added, check calendar
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}

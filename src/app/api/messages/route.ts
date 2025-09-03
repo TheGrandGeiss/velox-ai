@@ -12,20 +12,22 @@ export async function GET() {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-    const chat = await prisma.message.findMany({
+    const userProfile = await prisma.profile.findUnique({
       where: {
-        profile: {
-          userId: session?.user?.id,
-        },
+        userId: session?.user?.id,
       },
-      orderBy: {
-        createdAt: 'asc',
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
       },
     });
 
     return NextResponse.json(
       {
-        data: chat,
+        data: userProfile?.messages || [],
       },
       { status: 200 }
     );

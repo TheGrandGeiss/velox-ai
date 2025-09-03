@@ -98,6 +98,7 @@ model Profile {
   // availability      Json
 
   messages Message[] // 🔑 Profile has many messages
+  events   Event[] // 🔑 Profile has many events
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -105,12 +106,31 @@ model Profile {
 
 model Message {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  role      Role // "user" or "ai"
+  role      Role
   content   String
   createdAt DateTime @default(now())
 
   profileId String  @db.ObjectId
   profile   Profile @relation(fields: [profileId], references: [id])
+  events    Event[] // 🔑 Message can have many events
+}
+
+model Event {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String?
+  start           DateTime
+  end             DateTime?
+  allDay          Boolean   @default(false)
+  backgroundColor String?
+  borderColor     String?
+  textColor       String?
+  createdAt       DateTime  @default(now())
+
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  messageId String?  @db.ObjectId
+  message   Message? @relation(fields: [messageId], references: [id])
 }
 
 enum Role {
