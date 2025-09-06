@@ -118,6 +118,7 @@
 /* Events */
 [data-custom-calendar] .fc-timegrid-event-harness {
   @apply border-none;
+  margin-bottom: 8px; /* Add space between events */
 }
 
 [data-custom-calendar] .fc-timegrid-event-harness-inset {
@@ -126,7 +127,8 @@
 
 [data-custom-calendar] .fc-timegrid-event-harness .fc-event {
   @apply text-white rounded-lg border-none shadow-sm;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  /* Removed hardcoded background to allow AI-specified colors */
+  min-height: 32px; /* Ensure minimum height for visibility */
 }
 
 [data-custom-calendar] .fc-timegrid-event-harness .fc-event-main {
@@ -135,20 +137,24 @@
 
 [data-custom-calendar] .fc-timegrid-event-harness .fc-event-main-frame {
   @apply px-3 py-2;
+  min-height: 28px; /* Ensure minimum height for content */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 [data-custom-calendar]
   .fc-timegrid-event-harness
   .fc-event-main-frame
   .fc-event-time {
-  @apply text-xs text-blue-100 font-medium;
+  @apply text-sm text-blue-100 font-medium;
 }
 
 [data-custom-calendar]
   .fc-timegrid-event-harness
   .fc-event-main-frame
   .fc-event-title {
-  @apply text-sm font-semibold text-white py-1;
+  @apply text-base font-semibold text-white py-1;
 }
 
 /* Now indicator */

@@ -41,7 +41,6 @@ const ScheduleHome = () => {
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
-        // You could add a toast notification here instead of alert
         alert(
           error instanceof Error ? error.message : 'Failed to fetch messages'
         );
@@ -64,25 +63,6 @@ const ScheduleHome = () => {
       setMessages((prev) => [...prev, message]);
       console.log(message);
 
-      const uploadResponse = await fetch('/api/schedule', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ content: message.content }),
-      });
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(
-          errorData.error || `HTTP error! status: ${uploadResponse.status}`
-        );
-      }
-
-      const uploadData = await uploadResponse.json();
-
-      console.log({ data: uploadData });
-
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
@@ -101,16 +81,52 @@ const ScheduleHome = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Message saved successfully
         console.log('Message saved:', data);
       } else {
         throw new Error('Failed to save message');
       }
+
+      const uploadResponse = await fetch('/api/schedule', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: message.content,
+        }),
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        throw new Error(
+          errorData.error || `HTTP error! status: ${uploadResponse.status}`
+        );
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      if (!uploadData) {
+        throw new Error('error fetching response');
+      }
+
+      setMessages(uploadData);
+
+      const refreshResponse = await fetch('/api/messages', {
+        method: 'GET',
+        headers: {
+          'content-type': 'application/json',
+        },
+      });
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        if (refreshData.data) {
+          setMessages(refreshData.data);
+        }
+      }
     } catch (error) {
       console.error('Error submitting message:', error);
-
       setMessages((prev) => prev.filter((msg) => msg !== message));
-
       alert(error instanceof Error ? error.message : 'Failed to send message');
     } finally {
       setLoading(false);
@@ -119,7 +135,7 @@ const ScheduleHome = () => {
 
   return (
     <main className='bg-gray-50 min-h-screen flex flex-col'>
-      <div className='flex flex-col max-w-[1300px] mx-auto w-full flex-1'>
+      <div className='flex flex-col max-w-[1300px] mx-auto w-full h-screen'>
         {/* Header with back button */}
         <div className='p-6 flex-shrink-0'>
           <Link href={'/dashboard'}>
@@ -132,8 +148,8 @@ const ScheduleHome = () => {
           </Link>
         </div>
 
-        {/* Main content - centered with flex-1 to push textarea to bottom */}
-        <div className='flex-1 flex flex-col'>
+        {/* Main content area */}
+        <div className='flex-1 flex flex-col min-h-0 overflow-hidden scrollbar-hide'>
           {messages.length == 0 ? (
             <div className='flex-1 flex flex-col items-center justify-center px-6'>
               <div className='max-w-md text-center space-y-6'>
@@ -163,21 +179,25 @@ const ScheduleHome = () => {
               </div>
             </div>
           ) : (
-            <div className='flex-1 px-6'>
-              {/* Messages display area */}
-              <div className='space-y-4'>
+            <div className='flex-1 px-6 overflow-hidden'>
+              {/* Messages container with proper scrolling */}
+              <div className='h-full overflow-y-auto space-y-4 py-4 scrollbar-hide'>
                 {messages.map((message, index) =>
                   message.role === 'user' ? (
                     <div
                       key={index}
-                      className='bg-calprimary text-white ml-auto max-w-xs p-4 rounded-lg'>
-                      {message.content}
+                      className='flex justify-end'>
+                      <div className='bg-calprimary text-white max-w-xs lg:max-w-md xl:max-w-lg p-4 rounded-lg break-words'>
+                        {message.content}
+                      </div>
                     </div>
                   ) : (
                     <div
                       key={index}
-                      className='bg-gray-200 text-gray-800 mr-auto max-w-xs p-4 rounded-lg'>
-                      Schedule has been added, check calendar
+                      className='flex justify-start'>
+                      <div className='bg-gray-800 text-gray-200 max-w-xs lg:max-w-md xl:max-w-lg p-4 rounded-lg break-words'>
+                        {message.content}
+                      </div>
                     </div>
                   )
                 )}
@@ -187,7 +207,7 @@ const ScheduleHome = () => {
         </div>
 
         {/* Bottom textarea - always at bottom */}
-        <div className='p-6 pt-0 mt-auto flex-shrink-0'>
+        <div className='p-6 pt-4 flex-shrink-0'>
           <div className='max-w-3xl mx-auto'>
             <ChatBotMessageField
               handleSubmit={onSubmit}

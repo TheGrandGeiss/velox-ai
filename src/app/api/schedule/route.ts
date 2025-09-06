@@ -17,6 +17,30 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    const date = new Date();
+    const formattedDate = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const currentTime = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    const currentISO = date.toISOString();
+    const currentDateOnly = date.toISOString().split('T')[0];
+
+    const tomorrow = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowISO = tomorrow.toISOString();
+    const tomorrowDateOnly = tomorrow.toISOString().split('T')[0];
+
+    const nextWeek = new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const nextWeekISO = nextWeek.toISOString();
+    const nextWeekDateOnly = nextWeek.toISOString().split('T')[0];
 
     const userProfile = await prisma.profile.findUnique({
       where: {
@@ -37,6 +61,24 @@ export async function POST(req: Request) {
       contents: `Act as a professional schedule manager AI assistant. Analyze the user's tasks and preferences to create an optimal daily schedule formatted for FullCalendar. 
 
 USER TASKS: ${content}
+
+CURRENT DATE & TIME CONTEXT:
+- Today is: ${formattedDate}
+- Current time: ${currentTime}
+- Current ISO timestamp: ${currentISO}
+- Current date (YYYY-MM-DD): ${currentDateOnly}
+- Tomorrow date (YYYY-MM-DD): ${tomorrowDateOnly}
+- Tomorrow ISO timestamp: ${tomorrowISO}
+- Next week date (YYYY-MM-DD): ${nextWeekDateOnly}
+- Next week ISO timestamp: ${nextWeekISO}
+
+TIME INTERPRETATION RULES:
+- "today" = ${currentDateOnly}
+- "tomorrow" = ${tomorrowDateOnly}
+- "next week" = ${nextWeekDateOnly}
+- "this week" = schedule between ${currentDateOnly} and ${nextWeekDateOnly}
+- If no specific date mentioned, default to ${tomorrowDateOnly}
+- All times should be in ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)
 
 USER PREFERENCES:
 - Main Goal: ${userProfile.mainGoal}
@@ -67,14 +109,38 @@ CATEGORY COLOR SCHEME:
 - Default: Gray palette (#9E9E9E, #616161, #FFFFFF)
 
 SCHEDULING RULES:
-1. Calculate dates based on "tomorrow" if requested - use current date as reference
-2. Respect wake-up and sleep times for scheduling boundaries
-3. Break tasks into sessions matching the user's focus period (${userProfile.maxSessionLength})
-4. Include reasonable breaks between sessions
-5. Apply weekend preferences for scheduling style
-6. Consider user's age and main goal for task prioritization
-7. Ensure events don't overlap and have realistic durations
-8. Include color coding based on task categories
+1. PRECISE TIME CALCULATION:
+   - Use the exact ISO timestamps provided above for all scheduling
+   - Convert user's wake-up time (${userProfile.wakeUpTime}) to ISO format for the target date
+   - Convert user's sleep time (${userProfile.sleepTime}) to ISO format for the target date
+   - All start/end times must be in ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ)
+
+2. DATE INTERPRETATION:
+   - If user says "today" → use ${currentDateOnly}
+   - If user says "tomorrow" → use ${tomorrowDateOnly}
+   - If user says "next week" → use ${nextWeekDateOnly}
+   - If no date specified → default to ${tomorrowDateOnly}
+
+3. TIME BOUNDARIES:
+   - Start no earlier than user's wake-up time: ${userProfile.wakeUpTime}
+   - End no later than user's sleep time: ${userProfile.sleepTime}
+   - Respect these boundaries for the target scheduling date
+
+4. TASK BREAKDOWN:
+   - Break tasks into sessions matching user's focus period: ${userProfile.maxSessionLength} minutes
+   - Include 15-minute breaks between sessions
+   - Apply weekend preferences: ${userProfile.weekendPreference}
+
+5. PRIORITIZATION:
+   - Consider user's main goal: ${userProfile.mainGoal}
+   - Consider user's age (DOB: ${userProfile.dob}) for appropriate task difficulty
+   - Schedule high-priority tasks during peak focus hours
+
+6. TECHNICAL REQUIREMENTS:
+   - Ensure events don't overlap
+   - Use realistic durations (minimum 30 minutes, maximum 4 hours per session)
+   - Include color coding based on task categories
+   - All times must be valid ISO 8601 format
 
 Return a perfectly formatted JSON array that can be directly used by FullCalendar.`,
     });

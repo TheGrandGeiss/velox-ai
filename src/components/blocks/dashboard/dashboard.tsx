@@ -1,40 +1,59 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import '../../../app/dashboard/calendar.css';
+import { Message } from '@/lib/types';
 
 const Dashboard = () => {
-  const myEvents = [
-    {
-      title: 'Morning Workout',
-      start: '2025-08-19T07:00:00',
-      end: '2025-08-19T08:00:00',
-    },
-    {
-      title: 'Team Meeting',
-      start: '2025-08-19T09:00:00',
-      end: '2025-08-19T10:00:00',
-    },
-    {
-      title: 'Coding Session',
-      start: '2025-08-19T11:00:00',
-      end: '2025-08-19T13:00:00',
-    },
-    {
-      title: 'Lunch Break',
-      start: '2025-08-19T13:00:00',
-      end: '2025-08-19T14:00:00',
-    },
-    {
-      title: 'Reading Time',
-      start: '2025-08-19T17:00:00',
-      end: '2025-08-19T18:00:00',
-    },
-  ];
+  const [events, setEvents] = useState<any[]>([]);
+
+  console.log('Current events state:', events);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const response = await fetch('/api/events', {
+          method: 'GET',
+          headers: {
+            'content-type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Events API response:', data);
+        console.log('Events array:', data.events);
+
+        // Transform events for FullCalendar format
+        const transformedEvents = (data.events || []).map((event: Message) => ({
+          id: event.id,
+          title: event.title,
+          start: new Date(event.start),
+          end: event.end ? new Date(event.end) : null,
+          // allDay: event.allDay || false,
+          backgroundColor: event.backgroundColor || '#3b82f6',
+          borderColor: event.borderColor || '#1d4ed8',
+          textColor: event.textColor || '#ffffff',
+          description: event.description,
+        }));
+
+        console.log('Transformed events for FullCalendar:', transformedEvents);
+        setEvents(transformedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setEvents([]);
+      }
+    }
+
+    fetchEvents();
+  }, []);
 
   return (
     <>
@@ -43,10 +62,11 @@ const Dashboard = () => {
           className='w-full my-calendar-container pb-4'
           data-custom-calendar>
           <FullCalendar
+            key={events.length} // Force re-render when events change
             plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
             initialView='timeGridWeek'
             editable={true}
-            events={myEvents}
+            events={events}
             height={'97vh'}
             headerToolbar={{
               left: 'title today prev,next',
