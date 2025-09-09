@@ -7,11 +7,12 @@ import Link from 'next/link';
 import image from '@/assets/schdedulepageimage.png';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Message } from '@/lib/types';
+import { Message, Event } from '@/lib/types';
 
 const ScheduleHome = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [tasks, setTasks] = useState<Event[]>([]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -86,7 +87,7 @@ const ScheduleHome = () => {
         throw new Error('Failed to save message');
       }
 
-      const uploadResponse = await fetch('/api/schedule', {
+      const scheduleResponse = await fetch('/api/schedule', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -96,20 +97,37 @@ const ScheduleHome = () => {
         }),
       });
 
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
+      if (!scheduleResponse.ok) {
+        const errorData = await scheduleResponse.json();
         throw new Error(
-          errorData.error || `HTTP error! status: ${uploadResponse.status}`
+          errorData.error || `HTTP error! status: ${scheduleResponse.status}`
         );
       }
 
-      const uploadData = await uploadResponse.json();
+      const scheduleData = await scheduleResponse.json();
 
-      if (!uploadData) {
+      if (!scheduleData) {
         throw new Error('error fetching response');
       }
 
-      setMessages(uploadData);
+      console.log('Schedule data received:', scheduleData);
+      console.log('Tasks in schedule data:', scheduleData.tasks);
+
+      // Add AI response as a message
+      const aiMessage: Message = {
+        role: 'ai',
+        content: 'Schedule has been added, check calendar',
+        start: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Set tasks if they exist
+      if (scheduleData.tasks && Array.isArray(scheduleData.tasks)) {
+        setTasks(scheduleData.tasks);
+        console.log('Tasks set:', scheduleData.tasks);
+      } else {
+        console.log('No tasks found in schedule data');
+      }
 
       const refreshResponse = await fetch('/api/messages', {
         method: 'GET',
@@ -124,6 +142,7 @@ const ScheduleHome = () => {
           setMessages(refreshData.data);
         }
       }
+      console.log(tasks);
     } catch (error) {
       console.error('Error submitting message:', error);
       setMessages((prev) => prev.filter((msg) => msg !== message));
@@ -187,21 +206,82 @@ const ScheduleHome = () => {
                     <div
                       key={index}
                       className='flex justify-end'>
-                      <div className='bg-calprimary text-white max-w-xs lg:max-w-md xl:max-w-lg p-4 rounded-lg break-words'>
+                      <div className='bg-calprimary text-white max-w-xl lg:max-w-md xl:max-w-lg p-4 rounded-lg break-words'>
                         {message.content}
                       </div>
                     </div>
                   ) : (
-                    <div
-                      key={index}
-                      className='flex justify-start'>
-                      <div className='bg-gray-800 text-gray-200 max-w-xs lg:max-w-md xl:max-w-lg p-4 rounded-lg break-words'>
-                        {message.content}
-                      </div>
+                    <div key={index}>
+                      {tasks.length > 0 && (
+                        <div className='mt-4 p-4 bg-white rounded-lg shadow max-w-xl'>
+                          <h3 className='text-lg font-semibold mb-3 text-gray-800'>
+                            Scheduled Tasks:
+                          </h3>
+                          <div className='space-y-2'>
+                            {tasks.map((task, index) => (
+                              <div
+                                key={index}
+                                className='p-3 border rounded-lg'
+                                style={{
+                                  borderLeftColor: task.backgroundColor,
+                                  borderLeftWidth: '4px',
+                                }}>
+                                <h4 className='font-medium text-gray-800'>
+                                  {task.title}
+                                </h4>
+                                {task.description && (
+                                  <p className='text-sm text-gray-600 mt-1'>
+                                    {task.description}
+                                  </p>
+                                )}
+                                <div className='flex justify-between items-center mt-2 text-xs text-gray-500'>
+                                  <span>Category: {task.category}</span>
+                                  <span>
+                                    {new Date(task.start).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 )}
               </div>
+
+              {/* Display tasks if any */}
+              {tasks.length > 0 && (
+                <div className='mt-4 p-4 bg-white rounded-lg shadow'>
+                  <h3 className='text-lg font-semibold mb-3 text-gray-800'>
+                    Scheduled Tasks:
+                  </h3>
+                  <div className='space-y-2'>
+                    {tasks.map((task, index) => (
+                      <div
+                        key={index}
+                        className='p-3 border rounded-lg'
+                        style={{
+                          borderLeftColor: task.backgroundColor,
+                          borderLeftWidth: '4px',
+                        }}>
+                        <h4 className='font-medium text-gray-800'>
+                          {task.title}
+                        </h4>
+                        {task.description && (
+                          <p className='text-sm text-gray-600 mt-1'>
+                            {task.description}
+                          </p>
+                        )}
+                        <div className='flex justify-between items-center mt-2 text-xs text-gray-500'>
+                          <span>Category: {task.category}</span>
+                          <span>{new Date(task.start).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

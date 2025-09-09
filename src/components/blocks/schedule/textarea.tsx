@@ -20,10 +20,14 @@ const ChatBotMessageField = ({
   const submitMessage = async () => {
     if (!inputText.trim()) return;
 
-    const message: Message = { role: 'user', content: inputText.trim() };
+    const message: Message = {
+      role: 'user',
+      content: inputText.trim(),
+      start: new Date().toISOString(),
+    };
     try {
       await handleSubmit(message);
-      setInputText(''); // Clear input after successful submission
+      setInputText('');
     } catch (error) {
       setInputText(inputText);
       console.error('Failed to submit message:', error);

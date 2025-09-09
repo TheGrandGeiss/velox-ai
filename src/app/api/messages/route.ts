@@ -12,22 +12,43 @@ export async function GET() {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-    const userProfile = await prisma.profile.findUnique({
+    const chat = await prisma.message.findMany({
       where: {
-        userId: session?.user?.id,
+        profile: {
+          userId: session?.user?.id,
+        },
       },
       include: {
-        messages: {
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
+        events: true, // Include associated events/tasks
+      },
+      orderBy: {
+        createdAt: 'asc',
       },
     });
 
+    // Format messages to include tasks
+    const formattedMessages = chat.map((message) => ({
+      id: message.id,
+      role: message.role,
+      content: message.content,
+      createdAt: message.createdAt,
+      tasks:
+        message.events?.map((event) => ({
+          title: event.title,
+          description: event.description,
+          start: event.start.toISOString(),
+          end: event.end ? event.end.toISOString() : undefined,
+          category: event.category,
+          backgroundColor: event.backgroundColor,
+          borderColor: event.borderColor,
+          textColor: event.textColor,
+          createdAt: event.createdAt.toISOString(),
+        })) || [],
+    }));
+
     return NextResponse.json(
       {
-        data: userProfile?.messages || [],
+        data: formattedMessages,
       },
       { status: 200 }
     );

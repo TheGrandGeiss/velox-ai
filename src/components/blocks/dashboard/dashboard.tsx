@@ -7,6 +7,13 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import '../../../app/dashboard/calendar.css';
 import { Message } from '@/lib/types';
+import {
+  Dialog,
+  DialogDescription,
+  DialogTitle,
+  DialogHeader,
+  DialogContent,
+} from '@/components/ui/dialog';
 
 const Dashboard = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -83,10 +90,10 @@ const Dashboard = () => {
             selectable={true}
             selectMirror={true}
             nowIndicator={true}
-            slotMinTime='07:00:00'
-            slotMaxTime='22:00:00'
+            slotMinTime='04:00:00'
+            slotMaxTime='24:00:00'
             allDaySlot={false}
-            slotDuration='00:30:00'
+            slotDuration='00:15:00'
             eventDisplay='block'
             eventTimeFormat={{
               hour: '2-digit',
@@ -109,6 +116,17 @@ const Dashboard = () => {
               };
             }}
           />
+          <Dialog>
+            <DialogContent showCloseButton={false}>
+              <DialogHeader>
+                <DialogTitle>Are you absolutely sure?</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your account and remove your data from our servers.
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </>

@@ -3,23 +3,25 @@ export type Message = {
   role: 'user' | 'ai';
   content?: string;
   createdAt?: Date;
-  title: string;
+  title?: string;
   description?: string;
-  start: string; // ISO string
+  start: string | Date; // ISO string
   end?: string; // ISO string
   backgroundColor?: string;
   borderColor?: string;
   textColor?: string;
+  category?: string;
+  tasks?: Event[]; // Array of tasks for AI messages
 };
 
-// export interface Event {
-//   title: string;
-//   description?: string;
-//   start: string; // ISO string
-//   end?: string; // ISO string
-//   allDay?: boolean;
-//   backgroundColor?: string;
-//   borderColor?: string;
-//   textColor?: string;
-//   createdAt?: string; // optional when sending to frontend
-// }
+export interface Event {
+  title: string;
+  description?: string;
+  start: string; // ISO string
+  end?: string; // ISO string
+  category: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
+  createdAt?: string; // optional when sending to frontend
+}

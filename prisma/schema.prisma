@@ -124,8 +124,10 @@ model Event {
   allDay          Boolean   @default(false)
   backgroundColor String?
   borderColor     String?
+  category        String?
   textColor       String?
-  createdAt       DateTime  @default(now())
+
+  createdAt DateTime @default(now())
 
   profileId String   @db.ObjectId
   profile   Profile  @relation(fields: [profileId], references: [id])

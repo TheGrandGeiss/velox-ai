@@ -55,6 +55,31 @@ export async function POST(req: Request) {
       );
     }
 
+    // fetching existing task timestamps
+    const existingEvents = await prisma.event.findMany({
+      where: {
+        profile: {
+          userId: session?.user?.id,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    // Format existing events to match the Event interface
+    const formattedExistingEvents = existingEvents.map((event) => ({
+      title: event.title,
+      description: event.description,
+      start: event.start.toISOString(),
+      end: event.end ? event.end.toISOString() : undefined,
+      category: event.category,
+      backgroundColor: event.backgroundColor,
+      borderColor: event.borderColor,
+      textColor: event.textColor,
+      createdAt: event.createdAt.toISOString(),
+    }));
+
     // Call genai
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
@@ -88,6 +113,53 @@ USER PREFERENCES:
 - Average Focus Period: ${userProfile.maxSessionLength}
 - Weekend Preference: ${userProfile.weekendPreference}
 
+EXISTING SCHEDULED TASKS (AVOID CONFLICTS):
+${
+  formattedExistingEvents.length > 0
+    ? formattedExistingEvents
+        .map((event, index) => {
+          const startDate = new Date(event.start);
+          const endDate = event.end ? new Date(event.end) : null;
+          const startTime = startDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          });
+          const endTime = endDate
+            ? endDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })
+            : 'No end time';
+          const dateStr = startDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'short',
+            day: 'numeric',
+          });
+
+          return `${index + 1}. "${event.title}" - ${dateStr} from ${startTime} to ${endTime} (${event.category})`;
+        })
+        .join('\n')
+    : 'No existing tasks found - you have a completely free schedule.'
+}
+
+TIME CONFLICT ANALYSIS:
+${
+  formattedExistingEvents.length > 0
+    ? `The user already has ${formattedExistingEvents.length} scheduled task(s). 
+       Analyze each existing task's time period and ensure NO new tasks overlap with these times.
+       Look for gaps between existing tasks or schedule on different days if necessary.`
+    : "No existing tasks - you can schedule freely within the user's wake/sleep hours."
+}
+
+CONFLICT AVOIDANCE RULES:
+- NEVER schedule new tasks during existing task time periods
+- Check ALL existing tasks above for time conflicts
+- If a time conflict exists, find alternative time slots on the same day or different days
+- Maintain minimum 15-minute gaps between tasks
+- Respect user's wake-up time (${userProfile.wakeUpTime}) and sleep time (${userProfile.sleepTime})
+
 CRITICAL INSTRUCTIONS:
 1. Return ONLY a valid JSON array of objects - no other text, markdown, or explanations
 2. Each object MUST have these exact keys (all required except where noted):
@@ -98,15 +170,23 @@ CRITICAL INSTRUCTIONS:
    - backgroundColor: string (hex color code based on category)
    - borderColor: string (hex color code, usually darker shade of background)
    - textColor: string (hex color code for text, ensure contrast)
+   - category: string
 
 CATEGORY COLOR SCHEME:
-- Health/Fitness: Green palette (#4CAF50, #388E3C, #FFFFFF)
-- Learning/Books: Red palette (#F44336, #D32F2F, #FFFFFF)  
-- Work/Productivity: Blue palette (#2196F3, #1976D2, #FFFFFF)
-- Personal/Creative: Purple palette (#9C27B0, #7B1FA2, #FFFFFF)
-- Chores/Errands: Orange palette (#FF9800, #F57C00, #000000)
-- Social/Leisure: Teal palette (#009688, #00796B, #FFFFFF)
-- Default: Gray palette (#9E9E9E, #616161, #FFFFFF)
+
+- Health/Fitness: Green palette (#2E7D32, #43A047, #FFFFFF)
+
+- Learning/Books: Red palette (#D32F2F, #F44336, #FFFFFF)
+
+- Work/Productivity: Blue palette (#1565C0, #42A5F5, #FFFFFF)
+
+- Personal/Creative: Purple palette (#7B1FA2, #9C27B0, #FFFFFF)
+
+- Chores/Errands: Orange palette (#EF6C00, #FF9800, #000000)
+
+- Social/Leisure: Teal palette (#00695C, #009688, #FFFFFF)
+
+- Default: Gray palette (#616161, #9E9E9E, #FFFFFF)
 
 SCHEDULING RULES:
 1. PRECISE TIME CALCULATION:
@@ -220,8 +300,12 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
       },
     });
 
-    // Return just the cleaned array
-    return NextResponse.json(tasksArray);
+    // Fetch all existing events for this profile
+
+    // Return both new tasks and all existing tasks
+    return NextResponse.json({
+      tasks: tasksArray,
+    });
   } catch (error) {
     console.error('Error:', error);
 
