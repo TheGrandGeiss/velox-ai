@@ -15,6 +15,7 @@ export type Message = {
 };
 
 export interface Event {
+  id?: string;
   title: string;
   description?: string;
   start: string; // ISO string

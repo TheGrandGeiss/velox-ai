@@ -167,26 +167,47 @@ CRITICAL INSTRUCTIONS:
    - description: string (detailed description)
    - start: string (ISO 8601 format)
    - end: string (ISO 8601 format, optional but recommended)
-   - backgroundColor: string (hex color code based on category)
-   - borderColor: string (hex color code, usually darker shade of background)
+   - backgroundColor: string (hex color code based on category - lighter shade)
+   - borderColor: string (hex color code based on category - darker shade)
    - textColor: string (hex color code for text, ensure contrast)
    - category: string
 
 CATEGORY COLOR SCHEME:
 
-- Health/Fitness: Green palette (#2E7D32, #43A047, #FFFFFF)
+- Health/Fitness: 
+  * backgroundColor: #C8E6C9 (light green)
+  * borderColor: #2E7D32 (dark green)
+  * textColor: #1B5E20 (very dark green)
 
-- Learning/Books: Red palette (#D32F2F, #F44336, #FFFFFF)
+- Learning/Books: 
+  * backgroundColor: #FFCDD2 (light red)
+  * borderColor: #D32F2F (dark red)
+  * textColor: #B71C1C (very dark red)
 
-- Work/Productivity: Blue palette (#1565C0, #42A5F5, #FFFFFF)
+- Work/Productivity: 
+  * backgroundColor: #BBDEFB (light blue)
+  * borderColor: #1565C0 (dark blue)
+  * textColor: #0D47A1 (very dark blue)
 
-- Personal/Creative: Purple palette (#7B1FA2, #9C27B0, #FFFFFF)
+- Personal/Creative: 
+  * backgroundColor: #E1BEE7 (light purple)
+  * borderColor: #7B1FA2 (dark purple)
+  * textColor: #4A148C (very dark purple)
 
-- Chores/Errands: Orange palette (#EF6C00, #FF9800, #000000)
+- Chores/Errands: 
+  * backgroundColor: #FFE0B2 (light orange)
+  * borderColor: #EF6C00 (dark orange)
+  * textColor: #BF360C (very dark orange)
 
-- Social/Leisure: Teal palette (#00695C, #009688, #FFFFFF)
+- Social/Leisure: 
+  * backgroundColor: #B2DFDB (light teal)
+  * borderColor: #00695C (dark teal)
+  * textColor: #004D40 (very dark teal)
 
-- Default: Gray palette (#616161, #9E9E9E, #FFFFFF)
+- Default: 
+  * backgroundColor: #F5F5F5 (light gray)
+  * borderColor: #616161 (dark gray)
+  * textColor: #212121 (very dark gray)
 
 SCHEDULING RULES:
 1. PRECISE TIME CALCULATION:
@@ -219,8 +240,9 @@ SCHEDULING RULES:
 6. TECHNICAL REQUIREMENTS:
    - Ensure events don't overlap
    - Use realistic durations (minimum 30 minutes, maximum 4 hours per session)
-   - Include color coding based on task categories
+   - Include color coding based on task categories with proper contrast
    - All times must be valid ISO 8601 format
+   - backgroundColor should be lighter than borderColor for visual hierarchy
 
 Return a perfectly formatted JSON array that can be directly used by FullCalendar.`,
     });

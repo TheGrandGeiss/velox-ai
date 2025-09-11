@@ -12,12 +12,14 @@ import { Message, Event } from '@/lib/types';
 const ScheduleHome = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [tasks, setTasks] = useState<Event[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         setLoading(true);
+
+        // fetching all messages
         const response = await fetch('/api/messages', {
           method: 'GET',
           headers: {
@@ -33,15 +35,29 @@ const ScheduleHome = () => {
         }
 
         const data = await response.json();
-        console.log('Fetched messages:', data);
+
+        const taskResponse = await fetch('/api/tasks', {
+          method: 'GET',
+          headers: {
+            'content-type': 'application/json',
+          },
+        });
+
+        const taskData = await taskResponse.json();
+
+        console.log('Fetched messages:', data, taskData);
 
         if (data.data) {
           setMessages(data.data);
+        }
+
+        if (Array.isArray(taskData.tasks)) {
+          setTasks(taskData.tasks);
         } else {
-          console.warn('No data in response:', data);
+          console.warn('No data in response:', data, taskData);
         }
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        // console.error('Error fetching messages:', error);
         alert(
           error instanceof Error ? error.message : 'Failed to fetch messages'
         );
