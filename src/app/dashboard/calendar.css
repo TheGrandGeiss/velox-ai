@@ -200,20 +200,20 @@
   @apply p-2;
 }
 
-/* Time slots - INCREASED SPACING */
+/* Time slots - REDUCED SPACING */
 [data-custom-calendar]
   .fc-scroller
   .fc-timegrid-body
   .fc-timegrid-slots
   .fc-timegrid-slot {
-  @apply py-6; /* Increased from py-4 to py-6 */
+  @apply py-2; /* Reduced from py-6 to py-2 for tighter spacing */
   border-top: 1px solid #f1f5f9;
-  min-height: 70px; /* Increased minimum height for more space */
+  min-height: 40px; /* Reduced from 70px to 40px for more compact view */
 }
 
-/* Time labels - IMPROVED SPACING AND PADDING */
+/* Time labels - REDUCED SPACING AND PADDING */
 [data-custom-calendar] .fc-timegrid-slot-label {
-  @apply text-gray-500 text-sm font-medium py-3 pr-4; /* Added vertical and right padding */
+  @apply text-gray-500 text-sm font-medium py-1 pr-4; /* Reduced vertical padding to match slot spacing */
 }
 
 /* Time axis spacing */
@@ -343,8 +343,8 @@
     .fc-timegrid-body
     .fc-timegrid-slots
     .fc-timegrid-slot {
-    @apply py-4;
-    min-height: 50px;
+    @apply py-1;
+    min-height: 30px;
   }
 
   [data-custom-calendar] .fc-timegrid-axis {

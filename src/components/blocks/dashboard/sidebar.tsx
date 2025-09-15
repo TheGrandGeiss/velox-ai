@@ -6,6 +6,8 @@ import profile from '@/assets/profile-dummy.png';
 import Link from 'next/link';
 import { IoIosAdd } from 'react-icons/io';
 import Calendar01 from './sidebarCalendar';
+import Settings from './connectGoogle';
+import LogOut from './signOut';
 
 const Sidebar = async () => {
   const session = await auth();
@@ -55,6 +57,10 @@ const Sidebar = async () => {
           <IoIosAdd size={30} />{' '}
         </Link>
       </div>
+
+      <Settings />
+
+      <LogOut />
     </aside>
   );
 };

@@ -9,7 +9,17 @@ const resend = new ResendClient(process.env.AUTH_RESEND_KEY);
 export default {
   trustHost: true,
   providers: [
-    Google,
+    Google({
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+          scope:
+            'openid profile email https://www.googleapis.com/auth/calendar',
+        },
+      },
+    }),
     Resend({
       from: 'onboarding@resend.dev',
       async sendVerificationRequest({

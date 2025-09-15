@@ -40,6 +40,9 @@ export async function PATCH(
         id,
       },
       data: {
+        title: body.title,
+        description: body.description,
+        category: body.category,
         start: body.start,
         end: body.end,
       },
@@ -56,4 +59,22 @@ export async function PATCH(
       { status: 500 }
     );
   }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const deletedEvent = await prisma.event.delete({
+    where: {
+      id,
+    },
+  });
+
+  return NextResponse.json(
+    { success: true, event: deletedEvent },
+    { status: 200 }
+  );
 }

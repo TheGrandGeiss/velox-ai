@@ -9,6 +9,18 @@ import interactionPlugin, {
 } from '@fullcalendar/interaction';
 import '../../../app/dashboard/calendar.css';
 import { Event, Message } from '@/lib/types';
+
+// Type for FullCalendar events
+interface CalendarEvent {
+  id?: string;
+  title: string;
+  start: Date;
+  end?: Date;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
+  description?: string;
+}
 import {
   Dialog,
   DialogDescription,
@@ -17,13 +29,14 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { EventClickArg, EventDropArg } from '@fullcalendar/core/index.js';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import EventEditSheet from './sheet';
 
 const Dashboard = () => {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [eventDetails, setEventDetails] = useState<Event>();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [sheetOpen, setSheetOpen] = useState<boolean>(false);
 
   console.log('Current events state:', events);
 
@@ -50,7 +63,7 @@ const Dashboard = () => {
           id: event.id,
           title: event.title,
           start: new Date(event.start),
-          end: event.end ? new Date(event.end) : null,
+          end: event.end ? new Date(event.end) : undefined,
           // allDay: event.allDay || false,
           backgroundColor: event.backgroundColor || '#3b82f6',
           borderColor: event.borderColor || '#1d4ed8',
@@ -76,7 +89,13 @@ const Dashboard = () => {
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ start: info.event.start, end: info.event.end }),
+        body: JSON.stringify({
+          start: info.event.start,
+          title: info.event.title,
+          description: info.event.extendedProps.description,
+          category: info.event.extendedProps.category,
+          end: info.event.end,
+        }),
       });
       const data = await response.json();
       if (data.event) {
@@ -84,6 +103,56 @@ const Dashboard = () => {
       }
     } catch {
       info.revert();
+    }
+  }
+
+  async function handleEventDelete() {
+    if (!eventDetails?.id) {
+      console.log('No event ID found');
+      return;
+    }
+
+    try {
+      console.log('Attempting to delete event:', eventDetails);
+      const response = await fetch(`/api/events/${eventDetails.id}`, {
+        headers: {
+          'Content-type': 'application/json',
+        },
+        method: 'DELETE',
+      });
+
+      console.log('Delete response status:', response.status);
+      console.log('Delete response ok:', response.ok);
+
+      const data = await response.json();
+      console.log('Delete response data:', data);
+
+      if (response.ok) {
+        // Remove the event from the calendar
+        setEvents((prevEvents) =>
+          prevEvents.filter((event) => event.id !== eventDetails.id)
+        );
+
+        // Close the dialog
+        setDialogOpen(false);
+
+        alert('Event deleted successfully!');
+      } else {
+        console.error(
+          'Delete failed with status:',
+          response.status,
+          'and data:',
+          data
+        );
+        throw new Error(
+          `Failed to delete event: ${data.error || 'Unknown error'}`
+        );
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert(
+        `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -123,7 +192,30 @@ const Dashboard = () => {
     setDialogOpen(true);
   };
 
-  async function handleEventSave() {}
+  function handleEventUpdated(updatedEvent: Event) {
+    // Update the events state with the updated event
+    setEvents((prevEvents) =>
+      prevEvents.map((event) =>
+        event.id === updatedEvent.id
+          ? {
+              ...event,
+              title: updatedEvent.title,
+              description: updatedEvent.description,
+              start: new Date(updatedEvent.start),
+              end: updatedEvent.end ? new Date(updatedEvent.end) : undefined,
+            }
+          : event
+      )
+    );
+
+    // Update the eventDetails state if it's the same event
+    if (eventDetails?.id === updatedEvent.id) {
+      setEventDetails(updatedEvent);
+    }
+
+    // Close the sheet
+    setSheetOpen(false);
+  }
 
   return (
     <>
@@ -284,35 +376,28 @@ const Dashboard = () => {
 
                 {/* Action Buttons */}
                 <div className='flex space-x-3 pt-4 border-t border-gray-100'>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <button className='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2'>
-                        <svg
-                          className='w-4 h-4'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'>
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
-                          />
-                        </svg>
-                        <span>Edit</span>
-                      </button>
-                    </SheetTrigger>
-                    <SheetContent
-                      side='right'
-                      className='w-full sm:w-96 bg-white'>
-                      <EventEditSheet
-                        eventDetails={eventDetails}
-                        onSave={handleEventSave}
-                        onCancel={() => console.log('Edit cancelled')}
+                  <button
+                    className='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2'
+                    onClick={() => {
+                      setSheetOpen((prev) => !prev);
+                    }}>
+                    <svg
+                      className='w-4 h-4'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'>
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
                       />
-                    </SheetContent>
-                  </Sheet>
-                  <button className='flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2'>
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={handleEventDelete}
+                    className='flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2'>
                     <svg
                       className='w-4 h-4'
                       fill='none'
@@ -331,6 +416,25 @@ const Dashboard = () => {
               </DialogHeader>
             </DialogContent>
           </Dialog>
+
+          {/* sidebar */}
+          <Sheet
+            open={sheetOpen}
+            onOpenChange={setSheetOpen}>
+            <SheetContent
+              side='right'
+              className='w-[400px] sm:max-w-[540px] p-8'>
+              <SheetTitle className='text-xl font-semibold '>
+                Make Changes to :
+                <span className='text-calprimary'> {eventDetails?.title}</span>
+              </SheetTitle>
+              <EventEditSheet
+                eventDetails={eventDetails}
+                onCancel={() => console.log('Edit cancelled')}
+                onEventUpdated={handleEventUpdated}
+              />
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </>
