@@ -215,7 +215,7 @@ const Onboarding = () => {
                     <Textarea
                       placeholder='enter your goals here'
                       {...field}
-                      className='h-34 focus-visible:ring-[#720455] focus-visible:ring-[1px]'
+                      className='h-34 focus-visible:ring-calprimary focus-visible:ring-[1px] resize-none'
                     />
                   </FormControl>
                   <FormMessage />
