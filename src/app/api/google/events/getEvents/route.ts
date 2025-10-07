@@ -4,9 +4,8 @@ import { prisma } from '@/prisma';
 import { google, calendar_v3 } from 'googleapis';
 
 const calendar = google.calendar({ version: 'v3' });
-// Adjust the import path as needed
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const session = await auth();
 
@@ -24,27 +23,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { summary, description, start, end } = await req.json();
-
-    const event = {
-      summary,
-      description,
-      start: {
-        dateTime: start,
-        timeZone: 'Your/TimeZone', // e.g., 'America/Los_Angeles'
-      },
-      end: {
-        dateTime: end,
-        timeZone: 'Your/TimeZone', // e.g., 'America/Los_Angeles'
-      },
-    };
-
-    async function addEventsWithToken(
+    async function getEventsWithToken(
       calendarID: string,
       accessToken: string,
-      refreshtoken: string,
-      eventData: calendar_v3.Schema$Event
-    ): Promise<calendar_v3.Schema$Event | null> {
+      refreshtoken: string
+    ): Promise<calendar_v3.Schema$Event[] | null> {
       try {
         // 2. Create an OAuth2 client object and set the credentials
         const authClient = new google.auth.OAuth2(
@@ -59,16 +42,20 @@ export async function POST(req: NextRequest) {
         });
 
         // 3. Make the API Call
-        const response = await calendar.events.insert({
+        const response = await calendar.events.list({
           auth: authClient, // Pass the OAuth client for authentication
           calendarId: calendarID,
-          requestBody: eventData,
+          timeMin: new Date().toISOString(), // Optional: Filter for events from now on
+          maxResults: 10,
+          singleEvents: true,
+          orderBy: 'startTime',
         });
 
         // The data structure is: response.data.items
-        return response.data;
+        const events = response.data.items;
 
         // Ensure events is an array before returning
+        return events || [];
       } catch (error) {
         console.error('Google Calendar API Error:', error);
         // Returning null or throwing an error is appropriate for server-side failure
@@ -76,22 +63,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const addedEvents = await addEventsWithToken(
+    const events = await getEventsWithToken(
       'primary',
       account.access_token,
-      account.refresh_token,
-      event
+      account.refresh_token
     );
 
-    return NextResponse.json(
-      { message: 'Event created', event: addedEvents },
-      { status: 201 }
-    );
+    if (!events) {
+      return NextResponse.json({ message: 'no events found' });
+    }
+
+    return NextResponse.json({ events }, { status: 200 });
   } catch (error) {
-    console.error('Error creating event:', error);
-    return NextResponse.json(
-      { message: 'Failed to create event' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error }, { status: 500 });
   }
 }
