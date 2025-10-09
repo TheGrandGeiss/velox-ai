@@ -9,6 +9,7 @@ import Calendar01 from './sidebarCalendar';
 // import Settings from './connectGoogle';
 import LogOut from './signOut';
 import Click from './click';
+import { UserAvatarField } from './userAvatarField';
 
 const Sidebar = async () => {
   const session = await auth();
@@ -19,37 +20,8 @@ const Sidebar = async () => {
 
   return (
     <aside className='h-screen space-y-8 p-6'>
-      <div className=' px-6 py-3 bg-blue-50 w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] '>
-        <div className='flex gap-4 items-center rounded-md class w-full'>
-          {' '}
-          {session?.user?.image ? (
-            <Image
-              src={session?.user?.image}
-              alt='user image'
-              width={55}
-              height={32}
-              className='rounded-full'
-            />
-          ) : (
-            <Image
-              src={profile}
-              alt='user image'
-              width={55}
-              height={32}
-              className='rounded-full'
-            />
-          )}
-          <div>
-            {' '}
-            <h4 className='text-lg text-gray-800 font-semibold '>
-              {session.user?.name}
-            </h4>
-            <p className='text-sm text-gray-400'>{session.user?.email}</p>
-          </div>
-        </div>
-      </div>
+      <UserAvatarField />
 
-      <Calendar01 />
       <div className='text-white px-6 py-4 bg-blue-50 w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] text-center flex justify-center items-center text-xl'>
         <Link
           href={'/schedule'}
