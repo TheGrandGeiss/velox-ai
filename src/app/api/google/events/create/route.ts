@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth'; // Adjust the import path as needed
+import { auth } from '@/lib/auth';
 import { prisma } from '@/prisma';
 import { google, calendar_v3 } from 'googleapis';
-
-const calendar = google.calendar({ version: 'v3' });
-// Adjust the import path as needed
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,64 +16,54 @@ export async function POST(req: NextRequest) {
 
     if (!account?.access_token || !account.refresh_token) {
       return NextResponse.json(
-        { message: 'Google account not found' },
+        { message: 'Google account not found or unauthorized' },
         { status: 404 }
       );
     }
 
+    // Get event details from the request
     const { summary, description, start, end } = await req.json();
 
-    const event = {
+    // ✅ No need to rebuild start/end, use as-is from frontend
+    const event: calendar_v3.Schema$Event = {
       summary,
       description,
-      start: {
-        dateTime: start,
-        timeZone: 'Your/TimeZone', // e.g., 'America/Los_Angeles'
-      },
-      end: {
-        dateTime: end,
-        timeZone: 'Your/TimeZone', // e.g., 'America/Los_Angeles'
-      },
+      start, // Already has dateTime + timeZone
+      end,
     };
 
-    async function addEventsWithToken(
+    // Function to insert event using tokens
+    async function addEvent(
       calendarID: string,
       accessToken: string,
-      refreshtoken: string,
+      refreshToken: string,
       eventData: calendar_v3.Schema$Event
-    ): Promise<calendar_v3.Schema$Event | null> {
+    ) {
+      const authClient = new google.auth.OAuth2(
+        process.env.AUTH_GOOGLE_ID,
+        process.env.AUTH_GOOGLE_SECRET
+      );
+
+      authClient.setCredentials({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      const calendar = google.calendar({ version: 'v3', auth: authClient });
+
       try {
-        // 2. Create an OAuth2 client object and set the credentials
-        const authClient = new google.auth.OAuth2(
-          process.env.AUTH_GOOGLE_ID,
-          process.env.AUTH_GOOGLE_SECRET
-        );
-
-        // Tell the client to use the provided access token
-        authClient.setCredentials({
-          access_token: accessToken,
-          refresh_token: refreshtoken,
-        });
-
-        // 3. Make the API Call
         const response = await calendar.events.insert({
-          auth: authClient, // Pass the OAuth client for authentication
           calendarId: calendarID,
           requestBody: eventData,
         });
-
-        // The data structure is: response.data.items
         return response.data;
-
-        // Ensure events is an array before returning
-      } catch (error) {
+      } catch (error: any) {
         console.error('Google Calendar API Error:', error);
-        // Returning null or throwing an error is appropriate for server-side failure
-        return null;
+        throw new Error(error.message);
       }
     }
 
-    const addedEvents = await addEventsWithToken(
+    const newEvent = await addEvent(
       'primary',
       account.access_token,
       account.refresh_token,
@@ -84,7 +71,7 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json(
-      { message: 'Event created', event: addedEvents },
+      { message: '✅ Event created successfully', event: newEvent },
       { status: 201 }
     );
   } catch (error) {
