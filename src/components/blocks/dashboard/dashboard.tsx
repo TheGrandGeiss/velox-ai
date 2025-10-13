@@ -28,7 +28,11 @@ import {
   DialogHeader,
   DialogContent,
 } from '@/components/ui/dialog';
-import { EventClickArg, EventDropArg } from '@fullcalendar/core/index.js';
+import {
+  DateSelectArg,
+  EventClickArg,
+  EventDropArg,
+} from '@fullcalendar/core/index.js';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import EventEditSheet from './sheet';
 
@@ -37,6 +41,14 @@ const Dashboard = () => {
   const [eventDetails, setEventDetails] = useState<Event>();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
+  const [SelectDateModalOpen, setSelectDateModalOpen] =
+    useState<boolean>(false);
+  const [selectableEvent, setSelectableEvent] = useState<{
+    start: string;
+    end: string;
+    startDate: Date;
+    endDate: Date;
+  } | null>(null);
 
   console.log('Current events state:', events);
 
@@ -217,6 +229,17 @@ const Dashboard = () => {
     setSheetOpen(false);
   }
 
+  function handleSelectableEventCreation(selectableInfo: DateSelectArg) {
+    setSelectableEvent({
+      start: selectableInfo.startStr,
+      end: selectableInfo.endStr,
+      startDate: selectableInfo.start,
+      endDate: selectableInfo.end,
+    });
+
+    setSelectDateModalOpen(true);
+  }
+
   return (
     <>
       <div className='flex justify-start items-start gap-8 w-full h-full'>
@@ -229,6 +252,8 @@ const Dashboard = () => {
             initialView='timeGridWeek'
             editable={true}
             events={events}
+            selectable={true}
+            select={handleSelectableEventCreation}
             height={'97vh'}
             headerToolbar={{
               left: 'title today prev,next',
@@ -242,7 +267,7 @@ const Dashboard = () => {
               day: 'Day',
             }}
             titleFormat={{ year: 'numeric', month: 'short' }}
-            selectable={true}
+            // selectable={true}
             selectMirror={true}
             nowIndicator={true}
             slotMinTime='04:00:00'

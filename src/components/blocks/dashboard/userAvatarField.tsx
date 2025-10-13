@@ -18,7 +18,7 @@ export async function UserAvatarField() {
   }
   return (
     <div className='flex w-full max-w-lg flex-col gap-6'>
-      <Item variant='outline'>
+      <Item variant='muted'>
         <ItemMedia>
           <Avatar className='size-10'>
             <AvatarImage src={session.user.image} />
