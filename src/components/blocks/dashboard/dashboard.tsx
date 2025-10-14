@@ -188,7 +188,7 @@ const Dashboard = () => {
   };
 
   const handleEventClick = (info: EventClickArg): void => {
-    setEventDetails({
+    const eventData = {
       id: info.event.id,
       title: info.event.title,
       description: info.event.extendedProps.description || '',
@@ -199,8 +199,13 @@ const Dashboard = () => {
       borderColor: info.event.borderColor || undefined,
       textColor: info.event.textColor || undefined,
       createdAt: info.event.extendedProps.createdAt,
-    });
+    };
 
+    console.log('Event clicked:', eventData);
+    console.log('Event end time:', info.event.end);
+    console.log('Event end ISO:', info.event.end?.toISOString());
+
+    setEventDetails(eventData);
     setDialogOpen(true);
   };
 
@@ -236,6 +241,8 @@ const Dashboard = () => {
       startDate: selectableInfo.start,
       endDate: selectableInfo.end,
     });
+
+    console.log(selectableEvent);
 
     setSelectDateModalOpen(true);
   }
@@ -299,6 +306,8 @@ const Dashboard = () => {
               };
             }}
           />
+
+          {/* edit event modal */}
           <Dialog
             open={dialogOpen}
             onOpenChange={setDialogOpen}>
@@ -377,12 +386,14 @@ const Dashboard = () => {
                     </div>
                     <p className='text-lg font-semibold text-gray-800'>
                       {eventDetails?.start && formatTime(eventDetails.start)}
-                      {eventDetails?.end && (
-                        <span className='text-gray-600'>
-                          {' '}
-                          - {formatTime(eventDetails.end)}
-                        </span>
-                      )}
+                      {eventDetails?.end &&
+                        eventDetails.end !== 'undefined' &&
+                        eventDetails.end.trim() !== '' && (
+                          <span className='text-gray-600'>
+                            {' '}
+                            - {formatTime(eventDetails.end)}
+                          </span>
+                        )}
                     </p>
                   </div>
                 </div>
@@ -442,6 +453,8 @@ const Dashboard = () => {
             </DialogContent>
           </Dialog>
 
+          {/* create event modal */}
+
           {/* sidebar */}
           <Sheet
             open={sheetOpen}
@@ -455,7 +468,6 @@ const Dashboard = () => {
               </SheetTitle>
               <EventEditSheet
                 eventDetails={eventDetails}
-                onCancel={() => console.log('Edit cancelled')}
                 onEventUpdated={handleEventUpdated}
               />
             </SheetContent>
