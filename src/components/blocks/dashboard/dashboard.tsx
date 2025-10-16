@@ -35,6 +35,7 @@ import {
 } from '@fullcalendar/core/index.js';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import EventEditSheet from './sheet';
+import CreateOnSelect from './CreateOnSelect';
 
 const Dashboard = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -454,7 +455,10 @@ const Dashboard = () => {
           </Dialog>
 
           {/* create event modal */}
-
+          <CreateOnSelect
+            open={SelectDateModalOpen}
+            setOpen={setSelectDateModalOpen}
+          />
           {/* sidebar */}
           <Sheet
             open={sheetOpen}
