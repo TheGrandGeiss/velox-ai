@@ -9,8 +9,9 @@ export const eventSchema = z.object({
     .string()
     .min(5, 'keep the title between 15 and 120 characters')
     .max(200, 'keep the title between 15 and 120 characters'),
-  start: z.date('a start date is required'),
-  end: z.date('an end date is required'),
+  date: z.date('a start date is required'),
+  start: z.string('an start time is required'),
+  end: z.string('an end time is required'),
   allDay: z.boolean(),
   backgroundColor: z.string(),
   textColor: z.string(),

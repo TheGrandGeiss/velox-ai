@@ -16,6 +16,7 @@ import { useForm } from '@tanstack/react-form';
 import { eventSchema } from '@/lib/zodSchema/event';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from './date-picker';
 
 const CreateOnSelect = ({
   open,
@@ -28,8 +29,9 @@ const CreateOnSelect = ({
     defaultValues: {
       eventTitle: '',
       eventDescription: '',
-      start: new Date(),
-      end: new Date(),
+      date: new Date(),
+      start: '',
+      end: '',
       allDay: false,
       backgroundColor: '#3b82f6',
       textColor: '#ffffff',
@@ -79,7 +81,7 @@ const CreateOnSelect = ({
                       aria-invalid={isInvalid}
                       placeholder='Enter Event name'
                       autoComplete='off'
-                      className='border-0 focus-visible:ring-0 bg-slate-50 shadow-none rounded-md py-6 placeholder:text-gray-500 text-lg'
+                      className='border border-slate-200 focus-visible:ring-slate-900 focus-visible:ring-1/2 bg-slate-50 shadow-none rounded-md py-6 placeholder:text-gray-500 text-lg'
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
@@ -114,7 +116,7 @@ const CreateOnSelect = ({
                       aria-invalid={isInvalid}
                       placeholder='Enter Event Description'
                       autoComplete='off'
-                      className='border-0 focus-visible:ring-0 bg-slate-50 shadow-none rounded-md  placeholder:text-gray-500 text-lg resize-none min-h-[120px]'
+                      className='border border-slate-200 focus-visible:ring-slate-900 focus-visible:ring-1/2 bg-slate-50 shadow-none rounded-md  placeholder:text-gray-500 text-lg resize-none min-h-[80px]'
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
@@ -123,6 +125,30 @@ const CreateOnSelect = ({
                 );
               }}
             />
+
+            <div className='flex gap-4 justify-between items-center'>
+              {/* date picker */}
+              <form.Field
+                name='date'
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className='text-xl text-slate-700'>
+                        Event description
+                      </FieldLabel>
+                      <DatePicker field={field} />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
+            </div>
           </FieldGroup>
         </form>
       </DialogContent>
