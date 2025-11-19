@@ -11,20 +11,55 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { X } from 'lucide-react';
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction, useEffect } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { eventSchema } from '@/lib/zodSchema/event';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { DatePicker } from './date-picker';
 
 const CreateOnSelect = ({
   open,
   setOpen,
+  selectedData,
 }: {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  selectedData: {
+    start: string;
+    end: string;
+    startDate: Date;
+    endDate: Date;
+  } | null;
 }) => {
+  console.log(selectedData);
+  // Helper function to convert ISO string to time input format (HH:mm)
+  const isoToTimeInput = (isoString: string): string => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return '';
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    } catch {
+      return '';
+    }
+  };
+
+  // Helper function to convert time input (HH:mm) back to ISO string
+  const timeInputToIso = (timeValue: string, baseIsoString: string): string => {
+    const [hours, minutes] = timeValue.split(':').map(Number);
+    const baseDate = new Date(baseIsoString);
+    baseDate.setHours(hours, minutes, 0, 0);
+    return baseDate.toISOString();
+  };
+
+  function formatTimeForInput(date: Date) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
   const form = useForm({
     defaultValues: {
       eventTitle: '',
@@ -42,6 +77,27 @@ const CreateOnSelect = ({
       console.log(value);
     },
   });
+
+  // Update form values when selectedData changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      if (selectedData) {
+        // Set all form values when dialog opens with selectedData
+        form.setFieldValue('start', selectedData.start);
+        form.setFieldValue('end', selectedData.end);
+        form.setFieldValue('date', selectedData.startDate);
+        form.setFieldValue('eventTitle', '');
+        form.setFieldValue('eventDescription', '');
+      } else {
+        // Reset form when dialog opens without selectedData
+        form.setFieldValue('start', '');
+        form.setFieldValue('end', '');
+        form.setFieldValue('date', new Date());
+        form.setFieldValue('eventTitle', '');
+        form.setFieldValue('eventDescription', '');
+      }
+    }
+  }, [open, selectedData, form]);
   return (
     <Dialog
       open={open}
@@ -92,7 +148,7 @@ const CreateOnSelect = ({
             />
 
             {/* picker forms */}
-            <div className='flex justify-between items-center gap-4'></div>
+            {/* <div className='flex justify-between items-center gap-4'></div> */}
 
             {/* description */}
             <form.Field
@@ -127,20 +183,98 @@ const CreateOnSelect = ({
             />
 
             <div className='flex gap-4 justify-between items-center'>
-              {/* date picker */}
+              {/* start time picker */}
               <form.Field
-                name='date'
+                name='start'
                 children={(field) => {
                   const isInvalid =
                     field.state.meta.isTouched && !field.state.meta.isValid;
+                  const timeValue = field.state.value
+                    ? isoToTimeInput(field.state.value)
+                    : selectedData?.start
+                      ? isoToTimeInput(selectedData.start)
+                      : '';
                   return (
                     <Field data-invalid={isInvalid}>
                       <FieldLabel
                         htmlFor={field.name}
                         className='text-xl text-slate-700'>
-                        Event description
+                        Start Time
                       </FieldLabel>
-                      <DatePicker field={field} />
+                      <Input
+                        type='time'
+                        id={field.name}
+                        name={field.name}
+                        value={timeValue}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => {
+                          const newTime = e.target.value;
+                          if (newTime) {
+                            // Use current field value as base, or fallback to selectedData or current date
+                            const baseIsoString =
+                              field.state.value ||
+                              selectedData?.start ||
+                              new Date().toISOString();
+                            const newIsoString = timeInputToIso(
+                              newTime,
+                              baseIsoString
+                            );
+                            field.handleChange(newIsoString);
+                          }
+                        }}
+                        aria-invalid={isInvalid}
+                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-calprimary border border-slate-200 focus-visible:ring-slate-900 focus-visible:ring-1/2 bg-slate-50 shadow-none rounded-md py-6 text-lg'
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
+
+              {/* end time picker */}
+              <form.Field
+                name='end'
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  const timeValue = field.state.value
+                    ? isoToTimeInput(field.state.value)
+                    : selectedData?.end
+                      ? isoToTimeInput(selectedData.end)
+                      : '';
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className='text-xl text-slate-700'>
+                        End Time
+                      </FieldLabel>
+                      <Input
+                        type='time'
+                        id={field.name}
+                        name={field.name}
+                        value={timeValue}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => {
+                          const newTime = e.target.value;
+                          if (newTime) {
+                            // Use current field value as base, or fallback to selectedData or current date
+                            const baseIsoString =
+                              field.state.value ||
+                              selectedData?.end ||
+                              new Date().toISOString();
+                            const newIsoString = timeInputToIso(
+                              newTime,
+                              baseIsoString
+                            );
+                            field.handleChange(newIsoString);
+                          }
+                        }}
+                        aria-invalid={isInvalid}
+                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-calprimary border border-slate-200 focus-visible:ring-slate-900 focus-visible:ring-1/2 bg-slate-50 shadow-none rounded-md py-6 text-lg'
+                      />
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
                       )}

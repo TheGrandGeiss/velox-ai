@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -9,18 +10,6 @@ import interactionPlugin, {
 } from '@fullcalendar/interaction';
 import '../../../app/dashboard/calendar.css';
 import { Event, Message } from '@/lib/types';
-
-// Type for FullCalendar events
-interface CalendarEvent {
-  id?: string;
-  title: string;
-  start: Date;
-  end?: Date;
-  backgroundColor?: string;
-  borderColor?: string;
-  textColor?: string;
-  description?: string;
-}
 import {
   Dialog,
   DialogDescription,
@@ -36,8 +25,23 @@ import {
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import EventEditSheet from './sheet';
 import CreateOnSelect from './CreateOnSelect';
+import { useDateFormat } from '@/hooks/useDateFormat';
+
+// Type for FullCalendar events
+interface CalendarEvent {
+  id?: string;
+  title: string;
+  start: Date;
+  end?: Date;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
+  description?: string;
+}
 
 const Dashboard = () => {
+  const router = useRouter();
+  const { formatTime, formatDate } = useDateFormat();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [eventDetails, setEventDetails] = useState<Event>();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -62,6 +66,12 @@ const Dashboard = () => {
             'content-type': 'application/json',
           },
         });
+
+        // If unauthorized, redirect to home
+        if (response.status === 401 || response.status === 403) {
+          router.push('/');
+          return;
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -93,7 +103,7 @@ const Dashboard = () => {
     }
 
     fetchEvents();
-  }, []);
+  }, [router]);
 
   async function handleEventChange(info: EventDropArg | EventResizeDoneArg) {
     try {
@@ -168,25 +178,6 @@ const Dashboard = () => {
       );
     }
   }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
 
   const handleEventClick = (info: EventClickArg): void => {
     const eventData = {
@@ -278,7 +269,7 @@ const Dashboard = () => {
             // selectable={true}
             selectMirror={true}
             nowIndicator={true}
-            slotMinTime='04:00:00'
+            slotMinTime='05:30:00'
             slotMaxTime='24:00:00'
             allDaySlot={false}
             slotDuration='00:15:00'
@@ -458,6 +449,7 @@ const Dashboard = () => {
           <CreateOnSelect
             open={SelectDateModalOpen}
             setOpen={setSelectDateModalOpen}
+            selectedData={selectableEvent}
           />
           {/* sidebar */}
           <Sheet
