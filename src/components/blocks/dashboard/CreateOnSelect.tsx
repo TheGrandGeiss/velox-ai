@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
@@ -16,6 +17,7 @@ import { useForm } from '@tanstack/react-form';
 import { eventSchema } from '@/lib/zodSchema/event';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 const CreateOnSelect = ({
   open,
@@ -114,7 +116,7 @@ const CreateOnSelect = ({
           </DialogClose>
         </div>
 
-        <form>
+        <form id='event-creation-modal'>
           <FieldGroup className='gap-5'>
             <form.Field
               name='eventTitle'
@@ -223,7 +225,7 @@ const CreateOnSelect = ({
                           }
                         }}
                         aria-invalid={isInvalid}
-                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-calprimary border border-slate-200 focus-visible:ring-slate-900 focus-visible:ring-1/2 bg-slate-50 shadow-none rounded-md py-6 text-lg'
+                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-gray-700 focus-visible:ring-0 text-4xl bg-slate-50 shadow-none rounded-md py-6 '
                       />
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
@@ -273,7 +275,7 @@ const CreateOnSelect = ({
                           }
                         }}
                         aria-invalid={isInvalid}
-                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-calprimary border border-slate-200 focus-visible:ring-slate-900 focus-visible:ring-1/2 bg-slate-50 shadow-none rounded-md py-6 text-lg'
+                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-gray-700 focus-visible:ring-0 text-4xl bg-slate-50 shadow-none rounded-md py-6 '
                       />
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
@@ -285,6 +287,27 @@ const CreateOnSelect = ({
             </div>
           </FieldGroup>
         </form>
+        <DialogFooter className=''>
+          {' '}
+          <Field
+            className='flex items-center'
+            orientation='horizontal'>
+            <Button
+              type='button'
+              variant='default'
+              onClick={() => form.reset()}
+              className='w-1/2 bg-black text-lg py-2'>
+              Reset
+            </Button>
+
+            <Button
+              type='submit'
+              form='event-creation-modal'
+              className=' bg-green-600 w-1/2 text-lg py-2'>
+              Save
+            </Button>
+          </Field>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
