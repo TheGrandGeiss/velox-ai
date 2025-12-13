@@ -26,3 +26,12 @@ export interface Event {
   textColor?: string;
   createdAt?: string; // optional when sending to frontend
 }
+
+export type CategoryType =
+  | 'Health/Fitness'
+  | 'Learning/Books'
+  | 'Work/Productivity'
+  | 'Personal/Creative'
+  | 'Chores/Errands'
+  | 'Social/Leisure'
+  | 'Default';

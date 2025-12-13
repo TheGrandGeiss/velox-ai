@@ -1,52 +1,44 @@
+export const runtime = 'nodejs'; // Force this route to use Node.js runtime for Prisma
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/prisma';
 import { google, calendar_v3 } from 'googleapis';
+import { auth } from '@/lib/auth';
+import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Authenticate the user so we have their ID
     const session = await auth();
 
-    const account = await prisma.account.findFirst({
-      where: {
-        userId: session?.user?.id,
-        provider: 'google',
-      },
-    });
-
-    if (!account?.access_token || !account.refresh_token) {
-      return NextResponse.json(
-        { message: 'Google account not found or unauthorized' },
-        { status: 404 }
-      );
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get event details from the request
+    // 2. Get the guaranteed fresh Access Token using your helper
+    // We pass the userId here so the helper can find the specific account
+    const accessToken = await getValidAccessToken(session.user.id);
+
+    // 3. Get event details
     const { summary, description, start, end } = await req.json();
 
-    // ✅ No need to rebuild start/end, use as-is from frontend
     const event: calendar_v3.Schema$Event = {
       summary,
       description,
-      start, // Already has dateTime + timeZone
+      start,
       end,
     };
 
-    // Function to insert event using tokens
+    // 4. Helper to insert event (Simplified: Only needs Access Token now)
     async function addEvent(
       calendarID: string,
-      accessToken: string,
-      refreshToken: string,
+      validAccessToken: string,
       eventData: calendar_v3.Schema$Event
     ) {
-      const authClient = new google.auth.OAuth2(
-        process.env.AUTH_GOOGLE_ID,
-        process.env.AUTH_GOOGLE_SECRET
-      );
+      const authClient = new google.auth.OAuth2(); // No ID/Secret needed just to use a token
 
       authClient.setCredentials({
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        access_token: validAccessToken, // <-- Just the access token is enough!
       });
 
       const calendar = google.calendar({ version: 'v3', auth: authClient });
@@ -63,10 +55,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 5. Run it
     const newEvent = await addEvent(
       'primary',
-      account.access_token,
-      account.refresh_token,
+      accessToken, // Passing the token we got from step 2
       event
     );
 

@@ -18,6 +18,60 @@ import { eventSchema } from '@/lib/zodSchema/event';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { CategoryType } from '@/lib/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+export const categoryTypes = [
+  {
+    name: 'Health/Fitness',
+    backgroundColor: '#C8E6C9',
+    borderColor: '#2E7D32',
+    textColor: '#1B5E20',
+  },
+  {
+    name: 'Learning/Books',
+    backgroundColor: '#FFCDD2',
+    borderColor: '#D32F2F',
+    textColor: '#B71C1C',
+  },
+  {
+    name: 'Work/Productivity',
+    backgroundColor: '#BBDEFB',
+    borderColor: '#1565C0',
+    textColor: '#0D47A1',
+  },
+  {
+    name: 'Personal/Creative',
+    backgroundColor: '#E1BEE7',
+    borderColor: '#7B1FA2',
+    textColor: '#4A148C',
+  },
+  {
+    name: 'Chores/Errands',
+    backgroundColor: '#FFE0B2',
+    borderColor: '#EF6C00',
+    textColor: '#BF360C',
+  },
+  {
+    name: 'Social/Leisure',
+    backgroundColor: '#B2DFDB',
+    borderColor: '#00695C',
+    textColor: '#004D40',
+  },
+  {
+    name: 'Default',
+    backgroundColor: '#F5F5F5',
+    borderColor: '#616161',
+    textColor: '#212121',
+  },
+] as const;
 
 const CreateOnSelect = ({
   open,
@@ -31,9 +85,9 @@ const CreateOnSelect = ({
     end: string;
     startDate: Date;
     endDate: Date;
+    category?: CategoryType;
   } | null;
 }) => {
-  console.log(selectedData);
   // Helper function to convert ISO string to time input format (HH:mm)
   const isoToTimeInput = (isoString: string): string => {
     if (!isoString) return '';
@@ -69,6 +123,7 @@ const CreateOnSelect = ({
       date: new Date(),
       start: '',
       end: '',
+      category: 'Default',
       allDay: false,
       backgroundColor: '#3b82f6',
       textColor: '#ffffff',
@@ -225,7 +280,7 @@ const CreateOnSelect = ({
                           }
                         }}
                         aria-invalid={isInvalid}
-                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-gray-700 focus-visible:ring-0 text-4xl bg-slate-50 shadow-none rounded-md py-6 '
+                        className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none text-gray-700 focus-visible:ring-0  bg-slate-50 shadow-none rounded-md py-6 '
                       />
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
@@ -284,6 +339,55 @@ const CreateOnSelect = ({
                   );
                 }}
               />
+              <form.Field
+                name='category'
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field
+                      data-invalid={isInvalid}
+                      className='w-full' // Ensure field takes available width
+                    >
+                      {/* 1. Added Label to match alignment with Time inputs */}
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className='text-xl text-slate-700'>
+                        Category
+                      </FieldLabel>
+
+                      {/* 2. Styled SelectTrigger to match Input/Textarea */}
+                      <Select
+                        name={field.name}
+                        value={field.state.value}
+                        onValueChange={field.handleChange}>
+                        <SelectTrigger
+                          id={field.name}
+                          aria-invalid={isInvalid}
+                          className='w-full py-6 border border-slate-200 bg-slate-50 shadow-none rounded-md text-lg text-gray-700 focus:ring-slate-900 focus:ring-1 focus:outline-none'>
+                          <SelectValue placeholder='Select a category' />
+                        </SelectTrigger>
+                        <SelectContent
+                          position='item-aligned'
+                          className='w-full bg-white border-slate-200'>
+                          {categoryTypes.map((category) => (
+                            <SelectItem
+                              key={category.name}
+                              value={category.name}
+                              className='text-lg py-3 cursor-pointer hover:bg-slate-50'>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
             </div>
           </FieldGroup>
         </form>
@@ -296,14 +400,14 @@ const CreateOnSelect = ({
               type='button'
               variant='default'
               onClick={() => form.reset()}
-              className='w-1/2 bg-black text-lg py-2'>
+              className='w-1/2 bg-black text-lg py-5'>
               Reset
             </Button>
 
             <Button
               type='submit'
               form='event-creation-modal'
-              className=' bg-green-600 w-1/2 text-lg py-2'>
+              className=' bg-green-600 w-1/2 text-lg py-5'>
               Save
             </Button>
           </Field>

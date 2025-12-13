@@ -17,8 +17,10 @@ export async function UserAvatarField() {
     redirect('/sign-up');
   }
   return (
-    <div className='flex w-full max-w-lg flex-col gap-6'>
-      <Item variant='muted'>
+    <div className=' w-full max-w-lg gap-6'>
+      <Item
+        variant='default'
+        className='flex justify-between items-center'>
         <ItemMedia>
           <Avatar className='size-10'>
             <AvatarImage src={session.user.image} />

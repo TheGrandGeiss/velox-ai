@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 
 const Click = () => {
+  const { data: session } = useSession();
+
   const [isLoading, setIsLoading] = useState(false);
+
   const [message, setMessage] = useState<string | null>(null);
 
   async function create() {
@@ -12,6 +17,10 @@ const Click = () => {
     setIsLoading(true);
 
     // Set up start time (now) and end time (2 hours from now)
+    if (!session?.user?.id) throw new Error('no user');
+
+    await getValidAccessToken(session.user.id);
+
     const startDate = new Date();
     const endDate = new Date();
     endDate.setHours(endDate.getHours() + 2);

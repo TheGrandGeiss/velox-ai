@@ -7,17 +7,27 @@ import Link from 'next/link';
 import image from '@/assets/schdedulepageimage.png';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Message, Event } from '@/lib/types';
+import { Message } from '@/lib/types';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 
 const ScheduleHome = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [tasks, setTasks] = useState<any[]>([]);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         setLoading(true);
+
+        if (!session?.user?.id) {
+          redirect('signin');
+        }
+
+        await getValidAccessToken(session.user?.id);
 
         // fetching all messages
         const response = await fetch('/api/messages', {
