@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/select';
 import { useState } from 'react';
 import { Event } from '@/lib/types';
+import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
+import { useSession } from 'next-auth/react';
 
 // Time options for select dropdown
 const timeOptions: string[] = [
@@ -189,13 +191,16 @@ const EventEditSheet: React.FC<EventEditSheetProps> = ({
     startTime: eventDetails?.start ? formatTime(eventDetails.start) : '',
     endTime: eventDetails?.end ? formatTime(eventDetails.end) : '',
   });
-
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleSave = async (): Promise<void> => {
     if (!eventDetails) return;
 
     try {
+      const accessToken =
+        session?.user?.id && (await getValidAccessToken(session.user.id));
+
       // Convert times back to full datetime ISO strings
       const startDateTime = combineDateTime(
         eventDetails.start,
@@ -210,6 +215,7 @@ const EventEditSheet: React.FC<EventEditSheetProps> = ({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'X-Google-Token': accessToken || '',
         },
         body: JSON.stringify({
           title: editedEvent.title,

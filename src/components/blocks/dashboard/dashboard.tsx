@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -26,6 +26,8 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import EventEditSheet from './sheet';
 import CreateOnSelect from './CreateOnSelect';
 import { useDateFormat } from '@/hooks/useDateFormat';
+import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
+import { useSession } from 'next-auth/react';
 
 // Type for FullCalendar events
 interface CalendarEvent {
@@ -41,6 +43,7 @@ interface CalendarEvent {
 
 const Dashboard = () => {
   const router = useRouter();
+  const { data: session } = useSession();
   const { formatTime, formatDate } = useDateFormat();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [eventDetails, setEventDetails] = useState<Event>();
@@ -107,10 +110,13 @@ const Dashboard = () => {
 
   async function handleEventChange(info: EventDropArg | EventResizeDoneArg) {
     try {
+      const accessToken =
+        session?.user?.id && (await getValidAccessToken(session?.user?.id));
       const response = await fetch(`/api/events/${info.event.id}`, {
         method: 'PATCH',
         headers: {
           'content-type': 'application/json',
+          'X-Google-Token': accessToken || '',
         },
         body: JSON.stringify({
           start: info.event.start,
@@ -136,10 +142,14 @@ const Dashboard = () => {
     }
 
     try {
-      console.log('Attempting to delete event:', eventDetails);
+      if (!session?.user?.id) {
+        redirect('/signup');
+      }
+      const accessToken = await getValidAccessToken(session.user.id);
       const response = await fetch(`/api/events/${eventDetails.id}`, {
         headers: {
           'Content-type': 'application/json',
+          'X-Google-Token': accessToken || '',
         },
         method: 'DELETE',
       });
@@ -151,7 +161,7 @@ const Dashboard = () => {
       console.log('Delete response data:', data);
 
       if (response.ok) {
-        // Remove the event from the calendar
+        // Remove the event from the >calendar
         setEvents((prevEvents) =>
           prevEvents.filter((event) => event.id !== eventDetails.id)
         );

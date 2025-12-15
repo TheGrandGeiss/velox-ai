@@ -1,10 +1,9 @@
-// app/api/schedule/route.ts
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { prisma } from '@/prisma';
 import { auth } from '@/lib/auth';
-import { calendar_v3, google } from 'googleapis';
-import { generateGoogleCalendarId } from '@/lib/utils';
+import { calendar_v3 } from 'googleapis';
+import { googleClient } from '@/lib/actions/InitializeGoogleClient';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_AI_API_KEY });
 
@@ -295,7 +294,7 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
     }
 
     // Create the AI message with all events in one transaction
-    await prisma.message.create({
+    const message = await prisma.message.create({
       data: {
         role: 'ai',
         content: 'Schedule has been added, check calendar',
@@ -303,23 +302,6 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
           connect: {
             id: userProfile.id,
           },
-        },
-        events: {
-          create: tasksArray.map((task) => ({
-            title: task.title,
-            description: task.description,
-            start: new Date(task.start),
-            end: task.end ? new Date(task.end) : null,
-            allDay: task.allDay || false,
-            backgroundColor: task.backgroundColor,
-            borderColor: task.borderColor,
-            textColor: task.textColor,
-            profile: {
-              connect: {
-                id: userProfile.id,
-              },
-            },
-          })),
         },
       },
     });
@@ -331,33 +313,46 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
     });
 
     try {
-      const authClient = new google.auth.OAuth2();
-      authClient.setCredentials({ access_token: userAccount?.access_token }); // Use the passed token
-      const calendar = google.calendar({ version: 'v3', auth: authClient });
+      const calendar = await googleClient(userAccount?.access_token);
 
-      // Push all events to Google
-      tasksArray.map(async (task) => {
-        const eventId = generateGoogleCalendarId();
-
-        const event: calendar_v3.Schema$Event = {
-          id: eventId,
-          summary: task.title,
-          description: task.description,
-          start: { dateTime: new Date(task.start).toISOString() },
-          end: {
-            dateTime: task.end
-              ? new Date(task.end).toISOString()
-              : new Date(
-                  new Date(task.start).getTime() + 60 * 60 * 1000
-                ).toISOString(),
+      for (const task of tasksArray) {
+        // 1. Create in Prisma
+        const prismaEvent = await prisma.event.create({
+          data: {
+            title: task.title,
+            description: task.description,
+            start: new Date(task.start),
+            end: task.end ? new Date(task.end) : null,
+            allDay: task.allDay || false,
+            backgroundColor: task.backgroundColor,
+            borderColor: task.borderColor,
+            textColor: task.textColor,
+            category: task.category,
+            profileId: userProfile.id,
+            messageId: message.id,
           },
-        };
-
-        return calendar.events.insert({
-          calendarId: 'primary',
-          requestBody: event,
         });
-      });
+
+        // 2. Send THIS SPECIFIC event to Google (if connected)
+        if (calendar) {
+          await calendar.events.insert({
+            calendarId: 'primary',
+            requestBody: {
+              id: prismaEvent.id, // ✅ ID MATCH: Using the Prisma ID for Google
+              summary: task.title,
+              description: task.description,
+              start: { dateTime: new Date(task.start).toISOString() },
+              end: {
+                dateTime: task.end
+                  ? new Date(task.end).toISOString()
+                  : new Date(
+                      new Date(task.start).getTime() + 60 * 60 * 1000
+                    ).toISOString(),
+              },
+            },
+          });
+        }
+      }
     } catch (googleError) {
       console.warn('Google Sync Failed (Non-critical):', googleError);
       // We do NOT throw here, so the DB save still happens
