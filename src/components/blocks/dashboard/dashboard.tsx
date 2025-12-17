@@ -30,11 +30,12 @@ import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 import { useSession } from 'next-auth/react';
 
 // Type for FullCalendar events
-interface CalendarEvent {
+export interface CalendarEvent {
   id?: string;
   title: string;
   start: Date;
   end?: Date;
+  category?: string;
   backgroundColor?: string;
   borderColor?: string;
   textColor?: string;
@@ -90,7 +91,7 @@ const Dashboard = () => {
           title: event.title,
           start: new Date(event.start),
           end: event.end ? new Date(event.end) : undefined,
-          // allDay: event.allDay || false,
+          category: event.category,
           backgroundColor: event.backgroundColor || '#3b82f6',
           borderColor: event.borderColor || '#1d4ed8',
           textColor: event.textColor || '#ffffff',
@@ -279,7 +280,7 @@ const Dashboard = () => {
             // selectable={true}
             selectMirror={true}
             nowIndicator={true}
-            slotMinTime='05:30:00'
+            slotMinTime='00:00:00'
             slotMaxTime='24:00:00'
             allDaySlot={false}
             slotDuration='00:15:00'
@@ -459,6 +460,7 @@ const Dashboard = () => {
           <CreateOnSelect
             open={SelectDateModalOpen}
             setOpen={setSelectDateModalOpen}
+            setEvents={setEvents}
             selectedData={selectableEvent}
           />
           {/* sidebar */}

@@ -23,12 +23,6 @@ const ScheduleHome = () => {
       try {
         setLoading(true);
 
-        if (!session?.user?.id) {
-          redirect('signin');
-        }
-
-        await getValidAccessToken(session.user?.id);
-
         // fetching all messages
         const response = await fetch('/api/messages', {
           method: 'GET',
@@ -82,6 +76,11 @@ const ScheduleHome = () => {
   const onSubmit = async (message: Message) => {
     try {
       setLoading(true);
+      if (!session?.user?.id) {
+        redirect('signin');
+      }
+
+      await getValidAccessToken(session.user?.id);
 
       if (!message || !message.content?.trim()) {
         throw new Error('Please enter a message');

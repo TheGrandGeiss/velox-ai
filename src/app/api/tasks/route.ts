@@ -1,6 +1,7 @@
+import { googleClient } from '@/lib/actions/InitializeGoogleClient';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
   try {
@@ -48,6 +49,86 @@ export async function GET() {
       {
         error: 'Internal server error',
       },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+
+    // 1. Fetch User Account to get the Token
+    const userAccount = await prisma.account.findFirst({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    // 2. Create Event in Prisma FIRST
+    const newEvent = await prisma.event.create({
+      data: {
+        title: body.eventTitle,
+        description: body.eventDescription,
+        start: new Date(body.start),
+        end: body.end ? new Date(body.end) : null,
+        category: body.category,
+
+        // Colors from your form
+        backgroundColor: body.backgroundColor,
+        borderColor: body.borderColor,
+        textColor: body.textColor,
+
+        // Connect to the user's profile
+        profile: {
+          connect: {
+            userId: session.user.id,
+          },
+        },
+      },
+    });
+
+    // 3. Sync to Google Calendar using your utility
+    if (userAccount?.access_token) {
+      try {
+        // ✅ Awaiting your custom client here
+        const calendar = await googleClient(userAccount.access_token);
+
+        await calendar.events.insert({
+          calendarId: 'primary',
+          requestBody: {
+            id: newEvent.id, // ✅ Prisma ID = Google ID
+            summary: newEvent.title,
+            description: newEvent.description,
+            start: { dateTime: newEvent.start.toISOString() },
+            end: {
+              dateTime: newEvent.end
+                ? newEvent.end.toISOString()
+                : new Date(
+                    newEvent.start.getTime() + 60 * 60 * 1000
+                  ).toISOString(),
+            },
+          },
+        });
+      } catch (googleError) {
+        console.warn(
+          'Google Sync Failed (Event saved to DB only):',
+          googleError
+        );
+      }
+    }
+
+    return NextResponse.json({ success: true, event: newEvent });
+  } catch (error) {
+    console.error('Create Event Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to create event' },
       { status: 500 }
     );
   }

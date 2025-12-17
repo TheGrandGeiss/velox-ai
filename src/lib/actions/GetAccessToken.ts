@@ -2,6 +2,9 @@
 import { prisma } from '@/prisma';
 
 export async function getValidAccessToken(userId: string) {
+  if (!userId) {
+    alert('no user');
+  }
   const account = await prisma.account.findFirst({
     where: {
       userId,

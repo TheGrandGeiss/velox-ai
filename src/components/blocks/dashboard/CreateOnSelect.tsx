@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Dialog,
   DialogClose,
@@ -12,9 +14,15 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { X } from 'lucide-react';
-import React, { Dispatch, SetStateAction, useEffect } from 'react';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import { useForm } from '@tanstack/react-form';
-import { eventSchema } from '@/lib/zodSchema/event';
+import { eventSchema, eventSchemaType } from '@/lib/zodSchema/event';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -27,6 +35,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
+import { useSession } from 'next-auth/react';
+import { CalendarEvent } from './dashboard';
 
 export const categoryTypes = [
   {
@@ -77,9 +88,11 @@ const CreateOnSelect = ({
   open,
   setOpen,
   selectedData,
+  setEvents,
 }: {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  setEvents: Dispatch<SetStateAction<CalendarEvent[]>>;
   selectedData: {
     start: string;
     end: string;
@@ -101,6 +114,7 @@ const CreateOnSelect = ({
       return '';
     }
   };
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Helper function to convert time input (HH:mm) back to ISO string
   const timeInputToIso = (timeValue: string, baseIsoString: string): string => {
@@ -110,31 +124,83 @@ const CreateOnSelect = ({
     return baseDate.toISOString();
   };
 
-  function formatTimeForInput(date: Date) {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+  const { data: session } = useSession();
+
+  async function handleCreate(value: eventSchemaType) {
+    try {
+      setLoading(true);
+
+      // 1. Get Token
+      const accessToken = session?.user?.id
+        ? await getValidAccessToken(session.user.id)
+        : '';
+
+      // 2. Send Request
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Google-Token': accessToken || '',
+        },
+        body: JSON.stringify({
+          eventTitle: value.eventTitle,
+          eventDescription: value.eventDescription,
+          start: value.start,
+          end: value.end,
+          category: value.category,
+          backgroundColor: value.backgroundColor,
+          borderColor: value.borderColor,
+          textColor: value.textColor,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create event');
+
+      const data = await response.json();
+
+      if (data.success) {
+        const newEvent: CalendarEvent = {
+          id: data.event.id,
+          title: value.eventTitle,
+          description: value.eventDescription,
+          start: new Date(value.start),
+          end: value.end ? new Date(value.end) : new Date(value.start),
+          category: value.category,
+          backgroundColor: value.backgroundColor,
+          borderColor: value.borderColor,
+          textColor: value.textColor,
+        };
+
+        setEvents((prev) => [...prev, newEvent]);
+        alert('Event created successfully!');
+        setOpen(false);
+      }
+    } catch (error) {
+      console.error('Creation failed:', error);
+      alert('Failed to create event. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const form = useForm({
     defaultValues: {
       eventTitle: '',
       eventDescription: '',
-      date: new Date(),
+
       start: '',
       end: '',
       category: 'Default',
       allDay: false,
-      backgroundColor: '#3b82f6',
-      textColor: '#ffffff',
-      borderColor: '#3b82f6',
+      backgroundColor: '#F5F5F5',
+      borderColor: '#616161',
+      textColor: '#212121',
     },
     validators: { onSubmit: eventSchema },
-    onSubmit: ({ value }) => {
-      console.log(value);
+    onSubmit: async ({ value }) => {
+      await handleCreate(value);
     },
   });
-
   // Update form values when selectedData changes or dialog opens
   useEffect(() => {
     if (open) {
@@ -142,19 +208,28 @@ const CreateOnSelect = ({
         // Set all form values when dialog opens with selectedData
         form.setFieldValue('start', selectedData.start);
         form.setFieldValue('end', selectedData.end);
-        form.setFieldValue('date', selectedData.startDate);
         form.setFieldValue('eventTitle', '');
         form.setFieldValue('eventDescription', '');
       } else {
         // Reset form when dialog opens without selectedData
         form.setFieldValue('start', '');
         form.setFieldValue('end', '');
-        form.setFieldValue('date', new Date());
         form.setFieldValue('eventTitle', '');
         form.setFieldValue('eventDescription', '');
       }
     }
   }, [open, selectedData, form]);
+
+  const handleCategoryChange = (categoryName: string) => {
+    const selectedCategory = categoryTypes.find((c) => c.name === categoryName);
+
+    if (selectedCategory) {
+      // 2. Update the color fields in the form state
+      form.setFieldValue('backgroundColor', selectedCategory.backgroundColor);
+      form.setFieldValue('borderColor', selectedCategory.borderColor);
+      form.setFieldValue('textColor', selectedCategory.textColor);
+    }
+  };
   return (
     <Dialog
       open={open}
@@ -171,7 +246,12 @@ const CreateOnSelect = ({
           </DialogClose>
         </div>
 
-        <form id='event-creation-modal'>
+        <form
+          id='event-creation-modal'
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await form.handleSubmit();
+          }}>
           <FieldGroup className='gap-5'>
             <form.Field
               name='eventTitle'
@@ -360,7 +440,10 @@ const CreateOnSelect = ({
                       <Select
                         name={field.name}
                         value={field.state.value}
-                        onValueChange={field.handleChange}>
+                        onValueChange={(val) => {
+                          field.handleChange(val);
+                          handleCategoryChange(val);
+                        }}>
                         <SelectTrigger
                           id={field.name}
                           aria-invalid={isInvalid}
@@ -407,7 +490,8 @@ const CreateOnSelect = ({
             <Button
               type='submit'
               form='event-creation-modal'
-              className=' bg-green-600 w-1/2 text-lg py-5'>
+              disabled={loading}
+              className=' bg-green-400 w-1/2 text-lg py-5 disabled:bg-green-400/10'>
               Save
             </Button>
           </Field>
