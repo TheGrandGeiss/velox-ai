@@ -82,8 +82,6 @@ const Dashboard = () => {
         }
 
         const data = await response.json();
-        console.log('Events API response:', data);
-        console.log('Events array:', data.events);
 
         // Transform events for FullCalendar format
         const transformedEvents = (data.events || []).map((event: Message) => ({
@@ -98,7 +96,6 @@ const Dashboard = () => {
           description: event.description,
         }));
 
-        console.log('Transformed events for FullCalendar:', transformedEvents);
         setEvents(transformedEvents);
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -252,7 +249,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className='flex justify-start items-start gap-8 w-full h-full'>
+      <div className='flex justify-start items-start gap-8 w-full h-full calendar-layout'>
         <div
           className='w-full my-calendar-container pb-4'
           data-custom-calendar>
@@ -264,11 +261,11 @@ const Dashboard = () => {
             events={events}
             selectable={true}
             select={handleSelectableEventCreation}
-            height={'97vh'}
+            height={'95vh'}
             headerToolbar={{
-              left: 'title today prev,next',
-              center: '',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+              left: 'title',
+              center: 'dayGridMonth,timeGridWeek,timeGridDay',
+              right: 'prev,today,next',
             }}
             buttonText={{
               today: 'Today',
@@ -276,7 +273,7 @@ const Dashboard = () => {
               week: 'Week',
               day: 'Day',
             }}
-            titleFormat={{ year: 'numeric', month: 'short' }}
+            titleFormat={{ year: 'numeric', month: 'long' }}
             // selectable={true}
             selectMirror={true}
             nowIndicator={true}
@@ -305,7 +302,7 @@ const Dashboard = () => {
                 weekday: 'short',
               });
               return {
-                html: `<div class="fc-day-header"><span class="day-num">${date}</span><span class="day-name">${weekday}</span></div>`,
+                html: `<div class="fc-day-header"><span class="day-name">${weekday}</span><span class="day-num">${date}</span></div>`,
               };
             }}
           />

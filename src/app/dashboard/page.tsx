@@ -13,7 +13,7 @@ const page = async () => {
   }
 
   return (
-    <div className='flex justify-start items-start h-screen'>
+    <div className='flex justify-start items-start '>
       <Dashboard />
     </div>
   );

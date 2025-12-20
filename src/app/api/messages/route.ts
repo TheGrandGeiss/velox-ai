@@ -6,11 +6,6 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET() {
   try {
     const session = await auth();
-    console.log('Session in GET:', session);
-
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
 
     const chat = await prisma.message.findMany({
       where: {
@@ -19,7 +14,7 @@ export async function GET() {
         },
       },
       include: {
-        events: true, // Include associated events/tasks
+        events: true,
       },
       orderBy: {
         createdAt: 'asc',

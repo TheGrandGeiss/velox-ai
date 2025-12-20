@@ -19,7 +19,7 @@ const Sidebar = async () => {
   }
 
   return (
-    <aside className='h-screen space-y-8 p-6'>
+    <aside className=' space-y-8 p-6'>
       <UserAvatarField />
 
       <div className='text-white px-6 py-4 bg-blue-50 w-full rounded-2xl shadow-[0_0_5px_rgba(107,114,128,0.3)] text-center flex justify-center items-center text-xl'>
