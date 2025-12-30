@@ -261,7 +261,7 @@ const Dashboard = () => {
             events={events}
             selectable={true}
             select={handleSelectableEventCreation}
-            height={'95vh'}
+            height={'100vh'}
             headerToolbar={{
               left: 'title',
               center: 'dayGridMonth,timeGridWeek,timeGridDay',
@@ -281,7 +281,8 @@ const Dashboard = () => {
             slotMaxTime='24:00:00'
             allDaySlot={false}
             slotDuration='00:15:00'
-            eventDisplay='block'
+            slotLabelInterval={'1:00'}
+            eventDisplay='flex'
             eventTimeFormat={{
               hour: '2-digit',
               minute: '2-digit',

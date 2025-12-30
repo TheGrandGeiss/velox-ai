@@ -405,3 +405,7 @@
     margin-right: 2px;
   }
 }
+
+[data-custom-calendar] .fc-timegrid-body .fc-timegrid-slots table tbody tr {
+  @apply h-[20px];
+}

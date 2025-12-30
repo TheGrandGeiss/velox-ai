@@ -3,7 +3,7 @@ import { prisma } from '@/prisma';
 
 export async function getValidAccessToken(userId: string) {
   if (!userId) {
-    alert('no user');
+    throw new Error('no user');
   }
   const account = await prisma.account.findFirst({
     where: {
@@ -15,15 +15,12 @@ export async function getValidAccessToken(userId: string) {
   if (!account) throw new Error('No Google account linked');
   if (!account.refresh_token) throw new Error('No refresh token available');
 
+  // Check if expired (with 1 minute buffer)
   const expiresAtMs = (account.expires_at ?? 0) * 1000;
   const isExpired = Date.now() >= expiresAtMs - 60000;
 
   if (!isExpired && account.access_token) {
     return account.access_token;
-  }
-
-  if (!account.refresh_token) {
-    throw new Error('No refresh token');
   }
 
   try {
@@ -40,26 +37,45 @@ export async function getValidAccessToken(userId: string) {
       }),
     });
 
-    const token = await response.json();
+    const tokens = await response.json();
 
-    if (!response.ok) throw token;
+    if (!response.ok) {
+      // 🚨 CHECK SPECIFIC ERRORS HERE
+      if (tokens.error === 'invalid_grant') {
+        console.error(
+          '❌ Refresh Token Invalid (Revoked or Expired). User must re-login.'
+        );
+        // Optional: You could delete the invalid token from DB here to force a clean slate
+        // await prisma.account.update({ where: { id: account.id }, data: { refresh_token: null } });
+        throw new Error('Refresh token expired');
+      }
 
-    const newExpiresAt = Math.floor(Date.now() / 1000 + token.expires_in);
+      if (tokens.error === 'invalid_client') {
+        console.error('❌ Wrong Client ID or Secret in .env file');
+        throw new Error('Configuration error');
+      }
+
+      throw tokens; // Throw unknown errors
+    }
+
+    const newExpiresAt = Math.floor(Date.now() / 1000 + tokens.expires_in);
 
     await prisma.account.update({
       where: {
         id: account.id,
       },
       data: {
-        access_token: token.access_token,
+        access_token: tokens.access_token,
         expires_at: newExpiresAt,
-        refresh_token: token.refresh_token ?? account.refresh_token,
+        // Google might verify a new refresh token, but often it's undefined in a refresh response
+        refresh_token: tokens.refresh_token ?? account.refresh_token,
       },
     });
 
-    return token.access_token;
+    return tokens.access_token;
   } catch (error) {
-    console.error('Failed to refresh token', error);
+    console.error('Failed to refresh token:', error);
+    // Returning null or throwing specific error helps the frontend know to redirect to login
     throw new Error('Failed to refresh access token');
   }
 }

@@ -1,19 +1,12 @@
-import Link from 'next/link';
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import Home from '@/components/blocks/landing-page/home';
+import React from 'react';
 
-export default async function Home() {
-  const session = await auth();
-
-  // If user is logged in, redirect to dashboard
-  if (session) {
-    redirect('/dashboard');
-  }
-
+const page = () => {
   return (
-    <main>
-      Steady web app bitchhhhhhh
-      <Link href={'/sign-up'}>Sign up</Link>
-    </main>
+    <>
+      <Home />
+    </>
   );
-}
+};
+
+export default page;
