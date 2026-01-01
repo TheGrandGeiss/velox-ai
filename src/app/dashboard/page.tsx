@@ -9,7 +9,7 @@ const page = async () => {
 
   // If user is not logged in, redirect to home
   if (!session) {
-    redirect('/');
+    redirect('/login');
   }
 
   return (

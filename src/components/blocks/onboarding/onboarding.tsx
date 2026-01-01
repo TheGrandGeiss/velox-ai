@@ -1,6 +1,24 @@
 'use client';
 
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import {
+  CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Outfit } from 'next/font/google';
+
+// UI Components
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Form,
   FormControl,
@@ -11,40 +29,37 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {
-  userPreferenceSchema,
-  userPreferenceType,
-} from '@/lib/zodSchema/onboarding';
-import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Textarea } from '@/components/ui/textarea';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+
+// Logic & Actions
+import {
+  userPreferenceSchema,
+  userPreferenceType,
+} from '@/lib/zodSchema/onboarding';
 import { createProfile } from '@/lib/actions/profileAction';
 import { redirect } from 'next/navigation';
 
+const outfit = Outfit({ subsets: ['latin'] });
+
 const Onboarding = () => {
   const [step, setStep] = useState(1);
-
-  // The state for form errors per step
-  const [errorsStep1, setErrorsStep1] = useState(false);
-  const [errorsStep2, setErrorsStep2] = useState(false);
-  const [errorsStep3, setErrorsStep3] = useState(false);
+  const totalSteps = 3;
 
   const form = useForm<userPreferenceType>({
     resolver: zodResolver(userPreferenceSchema),
@@ -52,317 +67,319 @@ const Onboarding = () => {
       username: '',
       dob: new Date(),
       mainGoal: '',
-      maxSessionLength: '15',
+      maxSessionLength: '30',
       weekendPreference: 'FULL',
       wakeUpTime: '',
       sleepTime: '',
     },
-    // Keep a value of a field even if its input is removed
     shouldUnregister: false,
   });
 
-  const {
-    trigger,
-    getValues,
-    formState: { errors },
-  } = form;
+  // Calculate progress percentage
+  const progress = (step / totalSteps) * 100;
 
-  // A function to handle navigation between steps with validation
   const handleNext = async () => {
     let isValid = false;
-
-    switch (step) {
-      case 1:
-        isValid = true;
-        break;
-      case 2:
-        isValid = await form.trigger(['username', 'dob', 'mainGoal']);
-        break;
-      // Add a case for step 3 if you had a next button for it
-      // case 3:
-      //   isValid = await form.trigger(['wakeUpTime', 'sleepTime', 'weekendPreference', 'maxSessionLength']);
-      //   break;
+    if (step === 1) {
+      isValid = true;
+    } else if (step === 2) {
+      isValid = await form.trigger(['username', 'dob', 'mainGoal']);
     }
 
-    if (isValid) {
-      setStep((prev) => prev + 1);
-    }
+    if (isValid) setStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handleBack = () => {
-    setStep((prev) => prev - 1);
+    setStep((prev) => Math.max(prev - 1, 1));
   };
 
   const onSubmit = async (values: userPreferenceType) => {
-    // This will only be called on the final step
     await createProfile(values);
     redirect('/dashboard');
-    // Add success handling, e.g., redirecting the user
-    console.log('Form submitted successfully!', values);
-  };
-
-  const renderText = () => {
-    switch (step) {
-      case 1:
-        return 'Welcome To Steady | Your AI Scheduler';
-      case 2:
-        return 'Lets Know More About you';
-      case 3:
-        return "What's your day like?";
-    }
   };
 
   return (
-    <div className='flex flex-col items-center justify-center h-screen'>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className='w-full max-w-4xl px-16 mx-auto space-y-8 pb-16 border-t-4 border-[#720455] rounded-t-sm rounded-tl-sm shadow-none'
-          style={{
-            boxShadow:
-              '8px 0 10px -6px rgba(0, 0, 0, 0.1), -8px 0 10px -6px rgba(0, 0, 0, 0.1)',
-          }}>
-          <h2 className='pt-[3rem] text-3xl text-[#720455] font-bold text-center'>
-            {renderText()}
+    <div
+      className={`min-h-screen w-full flex items-center justify-center bg-[#f5f6f7] p-4 md:p-6 ${outfit.className}`}>
+      <Card className='w-full max-w-2xl shadow-2xl border-0 overflow-hidden bg-white/80 backdrop-blur-sm'>
+        {/* Progress Bar - Updated to Violet */}
+        <div className='w-full bg-gray-100 h-1.5'>
+          <div
+            className='bg-violet-600 h-1.5 transition-all duration-500 ease-out'
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <CardHeader className='pt-10 pb-2 text-center space-y-3'>
+          <div className='inline-block mx-auto p-3 bg-violet-50 rounded-full mb-2'>
+            {step === 1 && <Sparkles className='w-6 h-6 text-violet-600' />}
+            {step === 2 && <span className='text-2xl'>👤</span>}
+            {step === 3 && <span className='text-2xl'>⏰</span>}
+          </div>
+
+          <h2 className='text-2xl md:text-3xl font-bold text-[#262626] tracking-tight'>
+            {step === 1 && 'Welcome to Steady'}
+            {step === 2 && 'Tell us about yourself'}
+            {step === 3 && 'Your Daily Rhythm'}
           </h2>
+          <p className='text-gray-500 text-sm md:text-base max-w-md mx-auto'>
+            {step === 1 && "Let's set up your AI productivity companion."}
+            {step === 2 && 'This helps us personalize your experience.'}
+            {step === 3 && 'Customize how Steady plans your day.'}
+          </p>
+        </CardHeader>
 
-          <div style={{ display: step === 1 ? 'block' : 'none' }}>
-            <div className='text-balance text-lg text-center tracking-wider pb-8'>
-              👋 Welcome to Steady, your AI-powered productivity planner. Let’s
-              finish a quick setup so your AI buddy can help you plan smarter,
-              focus deeper, and get more done.
-            </div>
-          </div>
-
-          <div
-            style={{ display: step === 2 ? 'block' : 'none' }}
-            className='w-full space-y-8'>
-            <FormField
-              control={form.control}
-              name='username'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='text-lg text-gray-500'>
-                    Username
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type='text'
-                      placeholder='enter your username'
-                      className='w-full h-14 focus-visible:ring-[#720455] focus-visible:ring-[1px]'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='dob'
-              render={({ field }) => (
-                <FormItem className='flex flex-col '>
-                  <FormLabel className='text-lg text-gray-500'>
-                    Date of birth
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={'outline'}
-                          className={cn(
-                            'w-full pl-3 text-left font-normal h-14 ',
-                            !field.value && 'text-muted-foreground'
-                          )}>
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className='w-auto p-0'
-                      align='start'>
-                      <Calendar
-                        mode='single'
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
-                        }
-                        captionLayout='dropdown'
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='mainGoal'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='text-lg text-gray-500'>
-                    What do you hope to achieve
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder='enter your goals here'
-                      {...field}
-                      className='h-34 focus-visible:ring-calprimary focus-visible:ring-[1px] resize-none'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div
-            style={{ display: step === 3 ? 'block' : 'none' }}
-            className='w-full space-y-8'>
-            <FormField
-              control={form.control}
-              name='wakeUpTime'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='text-lg text-gray-500'>
-                    Average Wake Up Time
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type='text'
-                      placeholder='6:30 am'
-                      className='w-full h-14 focus-visible:ring-[#720455] focus-visible:ring-[1px]'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='sleepTime'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='text-lg text-gray-500'>
-                    What Time Do You Go To Sleep
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type='text'
-                      placeholder='11:30 pm'
-                      className='w-full h-14 focus-visible:ring-[#720455] focus-visible:ring-[1px]'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='weekendPreference'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='text-lg text-gray-500'>
-                    How Would You Rather Spend Your Weekends
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className='py-7 w-full'>
-                        <SelectValue placeholder='Select a weekend schedule' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className=''>
-                      <SelectItem value='FULL'>Full Day Schedules</SelectItem>
-                      <SelectItem value='LIGHT'>Light Day Schedules</SelectItem>
-                      <SelectItem value='NONE'>No schedules</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    This helps us understand your preferred balance between
-                    productivity and rest
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='maxSessionLength'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='text-lg text-gray-500'>
-                    How Long Would You Want Your Sessions To be
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className='py-7 w-full'>
-                        <SelectValue placeholder='How Long Can You Focus' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className=''>
-                      <SelectItem value='15'>15 mins</SelectItem>
-                      <SelectItem value='30'>30 mins</SelectItem>
-                      <SelectItem value='45'>45 mins</SelectItem>
-                      <SelectItem value='60'>1 hr</SelectItem>
-                      <SelectItem value='90'>1 hr 30 mins</SelectItem>
-                      <SelectItem value='120'>2 hrs</SelectItem>
-                      <SelectItem value='150'>2 hrs 30 mins</SelectItem>
-                      <SelectItem value='180'>3 hrs</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Choose how long your typical deep work or study session
-                    lasts. This helps us structure your daily focus blocks
-                    accordingly.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className='flex justify-between items-center'>
-            <Button
-              onClick={handleBack}
-              disabled={step === 1}
-              type='button'
-              className='bg-gray-600 text-xl py-6 px-10'>
-              Previous
-            </Button>
-            {step === 3 ? (
-              <Button
-                type='submit'
-                disabled={form.formState.isSubmitting}
-                className='bg-green-600 text-xl py-6 px-10'>
-                Submit
-              </Button>
-            ) : (
-              <div
-                onClick={handleNext}
-                // Explicitly set type to button to prevent form submission
-                className='bg-[#720455] text-xl text-white py-3 px-16 rounded-md'>
-                Next
+        <CardContent className='p-6 md:px-12 md:py-8'>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className='space-y-6'>
+              {/* --- STEP 1: WELCOME --- */}
+              <div className={cn('space-y-6', step !== 1 && 'hidden')}>
+                <div className='text-center space-y-6'>
+                  <p className='text-[#262626] leading-relaxed text-base md:text-lg'>
+                    Steady helps you plan smarter, focus deeper, and get more
+                    done. We just need a few details to tailor the AI to your
+                    specific needs.
+                  </p>
+                  <div className='bg-gray-50 p-4 rounded-lg border border-gray-100 text-sm text-gray-500'>
+                    🚀 Takes less than 60 seconds to complete.
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        </form>
-      </Form>
+
+              {/* --- STEP 2: PERSONAL INFO --- */}
+              <div className={cn('space-y-5', step !== 2 && 'hidden')}>
+                <FormField
+                  control={form.control}
+                  name='username'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-[#262626] font-medium'>
+                        Username
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder='e.g. Alex Creative'
+                          className='h-12 bg-white focus-visible:ring-violet-500'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='dob'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-col'>
+                      <FormLabel className='text-[#262626] font-medium'>
+                        Date of Birth
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant='outline'
+                              className={cn(
+                                'w-full pl-3 text-left font-normal h-12 hover:bg-white focus:ring-violet-500',
+                                !field.value && 'text-muted-foreground'
+                              )}>
+                              {field.value ? (
+                                format(field.value, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className='w-auto p-0'
+                          align='start'>
+                          <Calendar
+                            mode='single'
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date('1900-01-01')
+                            }
+                            captionLayout='dropdown'
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='mainGoal'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-[#262626] font-medium'>
+                        Main Goal
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder='e.g. I want to launch my startup while working full-time.'
+                          className='resize-none min-h-[120px] bg-white focus-visible:ring-violet-500'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* --- STEP 3: PREFERENCES --- */}
+              <div className={cn('space-y-5', step !== 3 && 'hidden')}>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <FormField
+                    control={form.control}
+                    name='wakeUpTime'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className='text-[#262626] font-medium'>
+                          Wake Up Time
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder='06:30 AM'
+                            className='h-12 bg-white focus-visible:ring-violet-500'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='sleepTime'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className='text-[#262626] font-medium'>
+                          Bedtime
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder='11:00 PM'
+                            className='h-12 bg-white focus-visible:ring-violet-500'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name='weekendPreference'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-[#262626] font-medium'>
+                        Weekend Preference
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className='h-12 bg-white focus:ring-violet-500'>
+                            <SelectValue placeholder='Select preference' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='FULL'>
+                            Full Schedule (Productive)
+                          </SelectItem>
+                          <SelectItem value='LIGHT'>
+                            Light Schedule (Balanced)
+                          </SelectItem>
+                          <SelectItem value='NONE'>
+                            No Schedule (Rest)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='maxSessionLength'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-[#262626] font-medium'>
+                        Focus Duration
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className='h-12 bg-white focus:ring-violet-500'>
+                            <SelectValue placeholder='Select duration' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='15'>15 mins (Sprints)</SelectItem>
+                          <SelectItem value='30'>30 mins (Pomodoro)</SelectItem>
+                          <SelectItem value='45'>45 mins</SelectItem>
+                          <SelectItem value='60'>1 hour (Deep Work)</SelectItem>
+                          <SelectItem value='90'>90 mins</SelectItem>
+                          <SelectItem value='120'>2 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Ideal length for a single session.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+
+        <CardFooter className='bg-gray-50/50 p-6 md:px-12 flex justify-between items-center border-t border-gray-100'>
+          <Button
+            variant='ghost'
+            onClick={handleBack}
+            disabled={step === 1}
+            className='text-gray-500 hover:text-[#262626] hover:bg-gray-100'>
+            <ChevronLeft className='w-4 h-4 mr-2' />
+            Back
+          </Button>
+
+          {step === totalSteps ? (
+            <Button
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={form.formState.isSubmitting}
+              className='bg-[#262626] hover:bg-violet-600 text-white px-8 h-12 rounded-lg shadow-md transition-all duration-300'>
+              Finish Setup
+              <Check className='w-4 h-4 ml-2' />
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              onClick={handleNext}
+              className='bg-[#262626] hover:bg-violet-600 text-white px-8 h-12 rounded-lg shadow-md transition-all duration-300'>
+              Next Step
+              <ChevronRight className='w-4 h-4 ml-2' />
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 };

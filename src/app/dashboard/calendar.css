@@ -1,411 +1,191 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
 
 @theme inline {
-  --color-base: #c45ab3;
-  --color-customBlue: #0f1a2b;
-  --color-customBG: #1a1423;
-  --color-calprimary: #3b82f6;
-  --color-light: #dbeafe;
-  --color-calsecondary: #6b7280;
-  --color-calbackground: #f8fafc;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-text: #1f2937;
-  --color-gray: #f5f6f7;
-  --color-customBlack: #262626;
-  --color-text-muted: #6b7280;
+  --color-bg-app: #0d0e12;
+  --color-bg-card: #1c1c21;
+  --color-bg-element: #28282d;
+  --color-accent-purple: #b591ef;
+  --font-outfit: 'Outfit', sans-serif;
 }
 
-/* ========================================= */
-/* 1. MAIN LAYOUT & CONTAINER                */
-/* ========================================= */
+/* ------------------------------------------------ */
+/* 1. RESET & BASICS                                */
+/* ------------------------------------------------ */
 
-/* Main Wrapper */
+body {
+  background-color: var(--color-bg-app);
+  color: white;
+  font-family: var(--font-outfit);
+}
+
+/* Main Container to fill height */
 [data-custom-calendar] {
-  @apply text-gray-800 min-w-full mx-0 w-full max-w-full;
+  width: 100%;
+  height: 100%; /* Critical for full height */
+  font-family: var(--font-outfit);
 }
 
-/* Outer layout container */
-.calendar-layout {
-  @apply rounded-4xl m-3 bg-white;
-}
+/* ------------------------------------------------ */
+/* 2. KILLING THE WHITE GRID LINES (The Fix)        */
+/* ------------------------------------------------ */
 
-/* Remove default FullCalendar borders */
-.fc {
-  border: none;
-}
-
-[data-custom-calendar] {
-  @apply border-none;
-}
-
-/* Scrollbar Hiding */
-[data-custom-calendar]
-  .fc-view-harness
-  .fc-view
-  .fc-scroller::-webkit-scrollbar {
-  display: none;
-}
-
-/* View Harness */
-[data-custom-calendar] .fc-view-harness {
-  @apply h-full;
-}
-
-[data-custom-calendar] .fc-view-harness .fc-view {
-  @apply w-full;
-}
-
-/* Scrollgrid (The main table structure) */
-[data-custom-calendar] .fc-view-harness .fc-view .fc-scrollgrid {
-  border: none;
-  @apply bg-white rounded-xl;
-}
-
-[data-custom-calendar] .fc-view-harness .fc-view .fc-scrollgrid tbody {
-  border: none;
-}
-
-/* ========================================= */
-/* 2. TOOLBAR & NAVIGATION                   */
-/* ========================================= */
-
-/* Toolbar Container */
-[data-custom-calendar] .fc-toolbar {
-  @apply pt-4 px-4;
-}
-
-[data-custom-calendar] .fc-toolbar-chunk {
-  @apply flex items-center justify-center gap-3;
-}
-
-/* Button Groups */
-[data-custom-calendar]
-  .fc-header-toolbar
-  .fc-toolbar-chunk:last-of-type
-  .fc-button-group {
-  @apply flex gap-3;
-}
-
-/* Title */
-[data-custom-calendar] .fc-toolbar-chunk .fc-toolbar-title {
-  @apply font-bold text-2xl text-gray-800;
-}
-
-/* Navigation Buttons (Prev/Next) */
-[data-custom-calendar] .fc-toolbar-chunk .fc-button-group .fc-prev-button,
-[data-custom-calendar] .fc-toolbar-chunk .fc-button-group .fc-next-button {
-  @apply bg-gray border border-gray-200 text-gray-600 text-sm rounded-lg px-3 py-2 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm;
-}
-
-/* Today Button */
-[data-custom-calendar] .fc-toolbar-chunk .fc-today-button {
-  @apply bg-gray text-black rounded-xl px-6 py-2.5 border-none hover:bg-gray/20 transition-colors shadow-sm;
-}
-
-/* View Switcher Buttons (Month/Week/Day) */
-[data-custom-calendar]
-  .fc-toolbar-chunk
-  .fc-button-group
-  .fc-dayGridMonth-button {
-  @apply bg-white border border-gray-200 px-6 py-2.5 rounded-l-lg text-gray-700 hover:bg-gray-50 aria-pressed:bg-calprimary aria-pressed:text-white aria-pressed:border-blue-500 transition-colors shadow-sm;
-}
-
-[data-custom-calendar]
-  .fc-toolbar-chunk
-  .fc-button-group
-  .fc-timeGridWeek-button {
-  @apply bg-white border-t border-b border-gray-200 px-6 py-2.5 text-gray-700 hover:bg-gray-50 aria-pressed:bg-calprimary aria-pressed:text-white aria-pressed:border-blue-500 transition-colors shadow-sm;
-}
-
-[data-custom-calendar]
-  .fc-toolbar-chunk
-  .fc-button-group
-  .fc-timeGridDay-button {
-  @apply bg-white border border-gray-200 px-6 py-2.5 rounded-r-lg text-gray-700 hover:bg-gray-50 aria-pressed:bg-calprimary aria-pressed:text-white aria-pressed:border-blue-500 transition-colors shadow-sm;
-}
-
-/* ========================================= */
-/* 3. GRID, HEADERS & BORDERS                */
-/* ========================================= */
-
-/* Remove Internal Vertical Borders */
-[data-custom-calendar] .fc-col-header-cell {
-  border-left: none !important;
-  border-right: none !important;
-}
-
-[data-custom-calendar] .fc-timegrid-col {
-  border-left: none !important;
-  border-right: none !important;
-}
-
-[data-custom-calendar] .fc-timegrid-axis {
-  border-right: none !important;
-}
-
-[data-custom-calendar] .fc-scrollgrid td,
-[data-custom-calendar] .fc-scrollgrid th {
-  border: none;
-}
-
-/* General Header Styling */
-[data-custom-calendar] thead tr th {
-  @apply border-collapse;
-}
-
-[data-custom-calendar] .fc-day-header {
-  @apply py-4 px-6 w-full;
-}
-
-[data-custom-calendar] .fc-day-header .day-num {
-  @apply text-2xl font-bold text-gray-800;
-}
-
-[data-custom-calendar] .fc-day-header .day-name {
-  @apply text-lg flex items-end font-medium text-gray-600 uppercase tracking-wide;
-}
-
-/* Today Column Highlighting */
-[data-custom-calendar] .fc-day-today {
-  @apply bg-customBlack rounded-2xl;
-}
-
-[data-custom-calendar] .fc-day-today .fc-day-header {
-  @apply bg-customBlack;
-}
-
-[data-custom-calendar] .fc-day-today .fc-day-header .day-num,
-[data-custom-calendar] .fc-day-today .fc-day-header .day-name {
-  @apply text-gray;
-}
-
-[data-custom-calendar] .fc-day-today .fc-timegrid-now-indicator-container {
-  @apply bg-light;
-}
-
-/* ========================================= */
-/* 4. MONTH VIEW (DayGrid)                   */
-/* ========================================= */
-
-/* Month Container */
-[data-custom-calendar] .fc-daygrid-body {
-  @apply bg-white rounded-xl;
-}
-
-/* Month Headers */
-[data-custom-calendar] .fc-daygrid .fc-col-header-cell {
-  @apply bg-white border-b border-gray-100;
-}
-
-[data-custom-calendar] .fc-daygrid .fc-col-header-cell-cushion {
-  @apply py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide;
-}
-
-/* Month Cells */
-[data-custom-calendar] .fc-daygrid-day {
-  @apply align-top;
-  background-color: #ffffff;
-}
-
-[data-custom-calendar] .fc-daygrid-day-frame {
-  @apply p-2;
-}
-
-[data-custom-calendar] .fc-daygrid-day-number {
-  @apply text-gray-800 font-semibold;
-}
-
-/* Highlight Today in Month View */
-[data-custom-calendar] .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
-  @apply bg-light;
-}
-
-/* Muted Text for Other Months */
-[data-custom-calendar] .fc-daygrid-day.fc-day-other .fc-daygrid-day-number,
-[data-custom-calendar] .fc-daygrid-day.fc-day-other .fc-daygrid-day-top {
-  @apply text-gray-400;
-}
-
-/* Month View Events */
-[data-custom-calendar] .fc-dayGridMonth-view .fc-event {
-  @apply my-2 py-1.5;
-}
-
-[data-custom-calendar] .fc-daygrid-event-harness .fc-event {
-  @apply rounded-lg shadow-sm;
+/* Remove default borders from the table structure */
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
   border: none !important;
 }
 
-[data-custom-calendar] .fc-daygrid-event-harness .fc-event-main {
-  @apply px-3 py-1 text-white font-medium;
+/* Remove the specific header cell borders */
+.fc-col-header-cell {
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; /* Subtle separator only */
 }
 
-/* Month View "More" Link & Popover */
-[data-custom-calendar] .fc-daygrid-more-link {
-  @apply text-calprimary font-medium hover:underline;
+/* ------------------------------------------------ */
+/* 3. TIME GRID STYLING                             */
+/* ------------------------------------------------ */
+
+/* The actual time slots (horizontal lines) */
+.fc-timegrid-slot {
+  height: 3.5em !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important; /* Extremely subtle line */
 }
 
-[data-custom-calendar] .fc-popover {
-  @apply rounded-xl shadow-lg border border-gray-100;
+/* The vertical axis (time labels) */
+.fc-timegrid-axis {
+  border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
 }
 
-[data-custom-calendar] .fc-popover-header {
-  @apply px-3 py-2 font-semibold text-gray-700 border-b border-gray-100;
+/* Time labels text */
+.fc-timegrid-slot-label-cushion {
+  color: #6b7280;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-[data-custom-calendar] .fc-popover-body {
-  @apply p-2;
+/* ------------------------------------------------ */
+/* 4. HEADER & TOOLBAR                              */
+/* ------------------------------------------------ */
+
+.fc-toolbar {
+  margin-bottom: 1.5rem !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* ========================================= */
-/* 5. WEEK/DAY VIEW (TimeGrid) & EVENTS      */
-/* ========================================= */
-
-/* Time Slots & Axis */
-[data-custom-calendar]
-  .fc-scroller
-  .fc-timegrid-body
-  .fc-timegrid-slots
-  .fc-timegrid-slot {
-  @apply py-2 my-1;
-  min-height: 80px;
+.fc-toolbar-title {
+  font-size: 1.75rem !important;
+  font-weight: 700;
+  color: white;
 }
 
-[data-custom-calendar] .fc-timegrid-slot-label {
-  @apply text-gray-500 text-sm font-medium py-3 pr-1.5;
+/* Button Groups */
+.fc-button-group {
+  background-color: var(--color-bg-element);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
 }
 
-[data-custom-calendar] .fc-timegrid-axis {
-  @apply pr-6;
-  min-width: 80px;
+/* Individual Buttons */
+.fc-button {
+  background: transparent !important;
+  border: none !important;
+  color: #9ca3af !important;
+  text-transform: capitalize;
+  font-weight: 500;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  padding: 8px 16px !important;
 }
 
-[data-custom-calendar] .fc-timegrid-body {
-  @apply mt-2 bg-gray;
+/* Active Button State (White Pill) */
+.fc-button-primary:not(:disabled).fc-button-active,
+.fc-button-primary:not(:disabled):active {
+  background-color: white !important;
+  color: black !important;
+  font-weight: 600;
 }
 
-/* Events Styling */
-[data-custom-calendar] .fc-timegrid-event-harness {
-  @apply border-none;
-  margin-bottom: 12px;
-  margin-left: 4px;
-  margin-right: 4px;
+/* Today Button */
+.fc-today-button {
+  background-color: var(--color-accent-purple) !important;
+  color: black !important;
+  font-weight: 600;
+  opacity: 1 !important;
 }
 
-[data-custom-calendar] .fc-timegrid-event-harness-inset {
-  @apply border-none;
+/* ------------------------------------------------ */
+/* 5. CUSTOM HEADER (Day Names)                     */
+/* ------------------------------------------------ */
+
+/* Wrapper for the "Monday 17" injection */
+.custom-header-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
 }
 
-[data-custom-calendar] .fc-timegrid-event-harness .fc-event {
-  @apply text-white rounded-xl border-l-5 shadow-md;
-  min-height: 40px;
+.custom-header-day {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #9ca3af; /* Muted gray */
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
-[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main {
-  @apply bg-transparent rounded-lg border-0;
+.custom-header-date {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
 }
 
-[data-custom-calendar] .fc-timegrid-event-harness .fc-event-main-frame {
-  @apply px-1.5 py-3 border-0;
-  min-height: 36px;
+/* Highlight Today's Header */
+.fc-day-today .custom-header-date {
+  color: var(--color-accent-purple);
+}
+
+/* ------------------------------------------------ */
+/* 6. EVENTS (Cards)                                */
+/* ------------------------------------------------ */
+
+.fc-v-event {
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2px;
+}
+
+.fc-event-main {
+  color: #1a1423; /* Dark text for pastel backgrounds */
+  padding: 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-[data-custom-calendar]
-  .fc-timegrid-event-harness
-  .fc-event-main-frame
-  .fc-event-time {
-  @apply text-xs font-medium mb-1;
-  color: rgba(255, 255, 255, 0.9);
+.fc-event-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.7;
 }
 
-[data-custom-calendar]
-  .fc-timegrid-event-harness
-  .fc-event-main-frame
-  .fc-event-title {
-  @apply text-white font-bold text-xl;
+.fc-event-title {
+  font-size: 0.9rem;
+  font-weight: 700;
   line-height: 1.2;
 }
 
-/* Event Interaction (Hover) */
-[data-custom-calendar] .fc-event:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-  transition: all 0.3s ease;
-}
-
-[data-custom-calendar] .fc-daygrid-day:hover {
-  @apply bg-gray-50;
-}
-
-/* All-Day Events */
-[data-custom-calendar] .fc-daygrid-event-harness .fc-event {
-  @apply rounded-md shadow-sm;
-  border: none !important;
-  min-height: 28px;
-}
-
-[data-custom-calendar] .fc-daygrid-event-harness .fc-event-main {
-  @apply px-3 py-1;
-}
-
-/* Now Indicator (Blue Line, Hidden Arrow) */
-[data-custom-calendar] .fc-timegrid-now-indicator-line {
-  @apply border border-calprimary;
-  /* border-width: 2px; <--- You can re-enable this if you want it thicker */
-}
-
-[data-custom-calendar] .fc-timegrid-now-indicator-arrow {
-  @apply hidden; /* <--- Arrow hidden as requested */
-}
-
-/* ========================================= */
-/* 6. RESPONSIVE ADJUSTMENTS                 */
-/* ========================================= */
-
-@media (max-width: 768px) {
-  [data-custom-calendar] .fc-toolbar {
-    @apply flex-col gap-4;
-  }
-
-  [data-custom-calendar] .fc-toolbar-chunk {
-    @apply justify-center;
-  }
-
-  [data-custom-calendar] .fc-day-header .day-num {
-    @apply text-xl;
-  }
-
-  [data-custom-calendar] .fc-day-header .day-name {
-    @apply text-sm;
-  }
-
-  /* Reduce spacing on mobile */
-  [data-custom-calendar]
-    .fc-scroller
-    .fc-timegrid-body
-    .fc-timegrid-slots
-    .fc-timegrid-slot {
-    @apply py-1;
-    min-height: 30px;
-  }
-
-  [data-custom-calendar] .fc-timegrid-axis {
-    @apply pr-3;
-    min-width: 60px;
-  }
-
-  [data-custom-calendar] .fc-timegrid-event-harness {
-    margin-bottom: 8px;
-    margin-left: 2px;
-    margin-right: 2px;
-  }
-}
-
-[data-custom-calendar] .fc-timegrid-body .fc-timegrid-slots table tbody tr {
-  @apply h-[20px];
+/* ------------------------------------------------ */
+/* 7. SCROLLBAR HIDING                              */
+/* ------------------------------------------------ */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
 }
