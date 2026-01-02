@@ -3,7 +3,12 @@
 import Sidebar from '@/components/blocks/dashboard/sidebar';
 import React, { useState } from 'react';
 import { Menu } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Outfit } from 'next/font/google';
 
@@ -46,6 +51,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <SheetContent
               side='left'
               className='w-[300px] bg-[#0d0e12] border-r-white/10 text-white p-6'>
+              <SheetTitle className='sr-only'>Navigation Menu</SheetTitle>
               <Sidebar />
             </SheetContent>
           </Sheet>
