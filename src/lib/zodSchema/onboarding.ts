@@ -1,7 +1,16 @@
 import z from 'zod';
 import { WeekendPreference } from '@prisma/client';
 
-const sessionLength = ['15', '30', '45', '60', '90', '120', '150', '180'];
+export const sessionLength = [
+  '15',
+  '30',
+  '45',
+  '60',
+  '90',
+  '120',
+  '150',
+  '180',
+];
 
 export const userPreferenceSchema = z.object({
   username: z

@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { UserAvatarField } from './userAvatarField';
 import { signOut } from 'next-auth/react';
+import { getUpcomingEvents } from '@/lib/actions/getUpcomingEvents';
 
 // Mock Data for the sidebar list
 const UPCOMING_EVENTS = [
@@ -42,6 +43,14 @@ const UPCOMING_EVENTS = [
   },
 ];
 
+interface UpcomingEventsType {
+  id: string;
+  title: string;
+  date: Date;
+  color: string;
+  isCompleted: boolean;
+}
+
 interface SidebarProps {
   className?: string;
 }
@@ -49,9 +58,12 @@ interface SidebarProps {
 const Sidebar = ({ className }: SidebarProps) => {
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [upComingEvents, setUpcomingEvents] = useState<
+    UpcomingEventsType[] | null
+  >([]);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu when clicking outside
+  // Hook 1: Handle Outside Click (UI Logic)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -62,6 +74,37 @@ const Sidebar = ({ className }: SidebarProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    fetchUpcoming();
+    const interval = setInterval(fetchUpcoming, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function fetchUpcoming() {
+    try {
+      // 2. Fetch the raw data from the server action
+      const rawEvents = await getUpcomingEvents();
+
+      if (!rawEvents) return;
+
+      // 3. Map the DB structure to your UI Interface
+      const formattedEvents: UpcomingEventsType[] = rawEvents.map(
+        (event: any) => ({
+          id: event.id,
+          title: event.title,
+          isCompleted: false,
+          date: new Date(event.start),
+
+          color: event.backgroundColor || '#b591ef',
+        })
+      );
+
+      // 4. Update the state
+      setUpcomingEvents(formattedEvents);
+    } catch (error) {
+      console.error('Failed to fetch upcoming events', error);
+    }
+  }
   const navItems = [
     {
       name: 'Dashboard',
@@ -122,7 +165,7 @@ const Sidebar = ({ className }: SidebarProps) => {
         </div>
 
         <div className='space-y-2'>
-          {UPCOMING_EVENTS.map((event) => (
+          {upComingEvents?.map((event) => (
             <div
               key={event.id}
               className={cn(
@@ -157,7 +200,11 @@ const Sidebar = ({ className }: SidebarProps) => {
                     style={{ backgroundColor: event.color }}
                   />
                   <span className='text-[10px] text-gray-400 font-medium'>
-                    {event.date}
+                    {event.date.toLocaleTimeString('en-us', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}
                   </span>
                 </div>
               </div>
@@ -181,7 +228,7 @@ const Sidebar = ({ className }: SidebarProps) => {
           <div className='absolute bottom-full left-0 w-full mb-3 p-1 bg-[#1c1c21] border border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 z-50'>
             <div className='flex flex-col gap-1'>
               <Link
-                href='/profile'
+                href='/dashboard/profile'
                 className='flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors'
                 onClick={() => setIsUserMenuOpen(false)}>
                 <Settings size={16} />

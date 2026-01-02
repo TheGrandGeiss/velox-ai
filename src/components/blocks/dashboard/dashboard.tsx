@@ -17,8 +17,8 @@ import {
   EventClickArg,
   EventDropArg,
 } from '@fullcalendar/core/index.js';
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import EventEditSheet from './sheet';
+// Removed Sheet imports since we converted the edit flow to a Modal
+import EditEventModal from './modal';
 import CreateOnSelect from './CreateOnSelect';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
@@ -45,7 +45,7 @@ const Dashboard = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [eventDetails, setEventDetails] = useState<Event>();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [sheetOpen, setSheetOpen] = useState<boolean>(false);
+  const [sheetOpen, setSheetOpen] = useState<boolean>(false); // Used for Edit Modal visibility
   const [SelectDateModalOpen, setSelectDateModalOpen] =
     useState<boolean>(false);
   const [selectableEvent, setSelectableEvent] = useState<{
@@ -97,7 +97,6 @@ const Dashboard = () => {
           start: new Date(event.start),
           end: event.end ? new Date(event.end) : undefined,
           category: event.category,
-          // Use our new pastel palette, darker text for readability on pastels
           backgroundColor:
             event.backgroundColor ||
             getColorByCategory(event.category || 'work'),
@@ -160,12 +159,6 @@ const Dashboard = () => {
         method: 'DELETE',
       });
 
-      console.log('Delete response status:', response.status);
-      console.log('Delete response ok:', response.ok);
-
-      const data = await response.json();
-      console.log('Delete response data:', data);
-
       if (response.ok) {
         // Remove the event from the >calendar
         setEvents((prevEvents) =>
@@ -174,15 +167,9 @@ const Dashboard = () => {
 
         // Close the dialog
         setDialogOpen(false);
-
         alert('Event deleted successfully!');
       } else {
-        console.error(
-          'Delete failed with status:',
-          response.status,
-          'and data:',
-          data
-        );
+        const data = await response.json();
         throw new Error(
           `Failed to delete event: ${data.error || 'Unknown error'}`
         );
@@ -209,6 +196,7 @@ const Dashboard = () => {
     setEventDetails(eventData);
     setDialogOpen(true);
   };
+
   function handleEventUpdated(updatedEvent: Event) {
     // Update the events state with the updated event
     setEvents((prevEvents) =>
@@ -220,6 +208,8 @@ const Dashboard = () => {
               description: updatedEvent.description,
               start: new Date(updatedEvent.start),
               end: updatedEvent.end ? new Date(updatedEvent.end) : undefined,
+              // Update colors if category changed
+              category: updatedEvent.category,
             }
           : event
       )
@@ -230,9 +220,12 @@ const Dashboard = () => {
       setEventDetails(updatedEvent);
     }
 
-    // Close the sheet
+    // Close the Edit Modal
     setSheetOpen(false);
+    // Also close the View Dialog if open, so we don't have stacked modals
+    setDialogOpen(false);
   }
+
   function handleSelectableEventCreation(selectableInfo: DateSelectArg) {
     setSelectableEvent({
       start: selectableInfo.startStr,
@@ -240,15 +233,12 @@ const Dashboard = () => {
       startDate: selectableInfo.start,
       endDate: selectableInfo.end,
     });
-
-    console.log(selectableEvent);
-
     setSelectDateModalOpen(true);
   }
 
   return (
     <div className='flex flex-col h-full w-full'>
-      <div className='flex-1 bg-[#1c1c21] md:rounded-[32px]  shadow-2xl border border-white/5 relative'>
+      <div className='flex-1 bg-[#1c1c21] md:rounded-[32px] shadow-2xl border border-white/5 relative'>
         <div className='w-full h-full '>
           <div
             className='h-full min-w-[800px] md:min-w-0'
@@ -262,13 +252,11 @@ const Dashboard = () => {
                 timeGridPlugin,
                 listPlugin,
               ]}
-              // Force timeGridWeek even on mobile now, since we have horizontal scroll
               initialView='timeGridWeek'
               editable={true}
               events={events}
               selectable={true}
               select={handleSelectableEventCreation}
-              // CRITICAL: Tells FullCalendar to fill the parent height
               height='100%'
               contentHeight='auto'
               handleWindowResize={true}
@@ -296,28 +284,25 @@ const Dashboard = () => {
               eventDrop={handleEventChange}
               eventClick={handleEventClick}
               firstDay={1}
-              // CUSTOM HEADER RENDERER (The "Monday 17" Stacked Look)
               dayHeaderContent={(arg) => {
-                // We use the same stacked look for mobile and desktop now
                 const date = arg.date.getDate();
                 const weekday = arg.date.toLocaleDateString('en-US', {
                   weekday: 'long',
                 });
-
                 return {
                   html: `
-                            <div class="custom-header-wrapper">
-                                <span class="custom-header-day">${weekday}</span>
-                                <span class="custom-header-date">${date}</span>
-                            </div>
-                            `,
+                    <div class="custom-header-wrapper">
+                        <span class="custom-header-day">${weekday}</span>
+                        <span class="custom-header-date">${date}</span>
+                    </div>
+                  `,
                 };
               }}
             />
 
-            {/* --- MODALS & SHEETS --- */}
+            {/* --- MODALS --- */}
 
-            {/* 1. VIEW EVENT DIALOG */}
+            {/* 1. VIEW EVENT DIALOG (The Summary Card) */}
             <Dialog
               open={dialogOpen}
               onOpenChange={setDialogOpen}>
@@ -363,7 +348,12 @@ const Dashboard = () => {
                 <div className='flex gap-3'>
                   <button
                     className='flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl font-medium transition-all'
-                    onClick={() => setSheetOpen((prev) => !prev)}>
+                    onClick={() => {
+                      // Open Edit Modal
+                      setSheetOpen(true);
+                      // Optional: Close View Dialog so they don't stack
+                      // setDialogOpen(false);
+                    }}>
                     Edit
                   </button>
                   <button
@@ -383,26 +373,13 @@ const Dashboard = () => {
               selectedData={selectableEvent}
             />
 
-            {/* 3. EDIT EVENT SHEET (Side Panel) */}
-            <Sheet
+            {/* 3. EDIT EVENT MODAL (Replaced Sheet) */}
+            <EditEventModal
               open={sheetOpen}
-              onOpenChange={setSheetOpen}>
-              <SheetContent
-                side='right'
-                className='w-full sm:w-[500px] bg-[#1c1c21] border-l border-white/10 text-white p-0 overflow-y-auto'>
-                <div className='p-6 border-b border-white/10 sticky top-0 bg-[#1c1c21] z-10'>
-                  <SheetTitle className='text-2xl font-bold'>
-                    Edit Event
-                  </SheetTitle>
-                </div>
-                <div className='p-6'>
-                  <EventEditSheet
-                    eventDetails={eventDetails}
-                    onEventUpdated={handleEventUpdated}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+              onOpenChange={setSheetOpen}
+              eventDetails={eventDetails}
+              onEventUpdated={handleEventUpdated}
+            />
           </div>
         </div>
       </div>

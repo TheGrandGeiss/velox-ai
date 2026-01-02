@@ -312,11 +312,22 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
       },
     });
 
+    // Initialize Google Calendar client once (outside the loop)
+    let calendar = null;
     try {
-      const calendar = await googleClient(userAccount?.access_token);
+      calendar = await googleClient(userAccount?.access_token);
+    } catch (googleClientError) {
+      console.warn(
+        'Google Client initialization failed (Non-critical):',
+        googleClientError
+      );
+      // Continue without Google Calendar sync
+    }
 
-      for (const task of tasksArray) {
-        // 1. Create in Prisma
+    // Process each task independently
+    for (const task of tasksArray) {
+      try {
+        // 1. Create in Prisma FIRST (this should always succeed)
         const prismaEvent = await prisma.event.create({
           data: {
             title: task.title,
@@ -333,29 +344,41 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
           },
         });
 
-        // 2. Send THIS SPECIFIC event to Google (if connected)
+        // 2. Send THIS SPECIFIC event to Google (if connected) - wrapped in try-catch per task
         if (calendar) {
-          await calendar.events.insert({
-            calendarId: 'primary',
-            requestBody: {
-              id: prismaEvent.id, // ✅ ID MATCH: Using the Prisma ID for Google
-              summary: task.title,
-              description: task.description,
-              start: { dateTime: new Date(task.start).toISOString() },
-              end: {
-                dateTime: task.end
-                  ? new Date(task.end).toISOString()
-                  : new Date(
-                      new Date(task.start).getTime() + 60 * 60 * 1000
-                    ).toISOString(),
+          try {
+            await calendar.events.insert({
+              calendarId: 'primary',
+              requestBody: {
+                // Don't use Prisma ID - let Google generate its own ID
+                // We can store the Google ID in Prisma later if needed
+                summary: task.title,
+                description: task.description,
+                start: { dateTime: new Date(task.start).toISOString() },
+                end: {
+                  dateTime: task.end
+                    ? new Date(task.end).toISOString()
+                    : new Date(
+                        new Date(task.start).getTime() + 60 * 60 * 1000
+                      ).toISOString(),
+                },
               },
-            },
-          });
+            });
+          } catch (googleEventError) {
+            console.warn(
+              `Google Calendar sync failed for task "${task.title}" (Non-critical):`,
+              googleEventError
+            );
+            // Continue to next task - DB save already succeeded
+          }
         }
+      } catch (prismaError) {
+        console.error(
+          `Failed to create event "${task.title}" in database:`,
+          prismaError
+        );
+        // Continue to next task even if this one fails
       }
-    } catch (googleError) {
-      console.warn('Google Sync Failed (Non-critical):', googleError);
-      // We do NOT throw here, so the DB save still happens
     }
 
     // const event:calendar_v3.Schema$Event ={
