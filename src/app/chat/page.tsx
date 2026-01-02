@@ -1,11 +1,10 @@
-import ScheduleHome from '@/components/blocks/schedule/home';
+import ScheduleHome from '@/components/blocks/chat/home';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 const page = async () => {
   const session = await auth();
 
-  // If user is not logged in, redirect to home
   if (!session) {
     redirect('/');
   }

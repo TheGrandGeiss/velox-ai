@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -115,14 +115,84 @@ const Dashboard = () => {
     fetchEvents();
   }, [router]);
 
-  // ... (Keep handleEventChange, handleEventDelete, handleEventClick logic same as before) ...
-  // For brevity, I am hiding the implementation of the logic handlers as they haven't changed visually
-  // but assume they are here exactly as in your previous code.
   async function handleEventChange(info: EventDropArg | EventResizeDoneArg) {
-    // ... existing logic
+    try {
+      const accessToken =
+        session?.user?.id && (await getValidAccessToken(session?.user?.id));
+      const response = await fetch(`/api/events/${info.event.id}`, {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+          'X-Google-Token': accessToken || '',
+        },
+        body: JSON.stringify({
+          start: info.event.start,
+          title: info.event.title,
+          description: info.event.extendedProps.description,
+          category: info.event.extendedProps.category,
+          end: info.event.end,
+        }),
+      });
+      const data = await response.json();
+      if (data.event) {
+        alert('Event Updated!!');
+      }
+    } catch {
+      info.revert();
+    }
   }
   async function handleEventDelete() {
-    // ... existing logic
+    if (!eventDetails?.id) {
+      console.log('No event ID found');
+      return;
+    }
+
+    try {
+      if (!session?.user?.id) {
+        redirect('/signup');
+      }
+      const accessToken = await getValidAccessToken(session.user.id);
+      const response = await fetch(`/api/events/${eventDetails.id}`, {
+        headers: {
+          'Content-type': 'application/json',
+          'X-Google-Token': accessToken || '',
+        },
+        method: 'DELETE',
+      });
+
+      console.log('Delete response status:', response.status);
+      console.log('Delete response ok:', response.ok);
+
+      const data = await response.json();
+      console.log('Delete response data:', data);
+
+      if (response.ok) {
+        // Remove the event from the >calendar
+        setEvents((prevEvents) =>
+          prevEvents.filter((event) => event.id !== eventDetails.id)
+        );
+
+        // Close the dialog
+        setDialogOpen(false);
+
+        alert('Event deleted successfully!');
+      } else {
+        console.error(
+          'Delete failed with status:',
+          response.status,
+          'and data:',
+          data
+        );
+        throw new Error(
+          `Failed to delete event: ${data.error || 'Unknown error'}`
+        );
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert(
+        `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
   const handleEventClick = (info: EventClickArg) => {
     const eventData = {
@@ -140,36 +210,46 @@ const Dashboard = () => {
     setDialogOpen(true);
   };
   function handleEventUpdated(updatedEvent: Event) {
-    // ... existing logic
+    // Update the events state with the updated event
+    setEvents((prevEvents) =>
+      prevEvents.map((event) =>
+        event.id === updatedEvent.id
+          ? {
+              ...event,
+              title: updatedEvent.title,
+              description: updatedEvent.description,
+              start: new Date(updatedEvent.start),
+              end: updatedEvent.end ? new Date(updatedEvent.end) : undefined,
+            }
+          : event
+      )
+    );
+
+    // Update the eventDetails state if it's the same event
+    if (eventDetails?.id === updatedEvent.id) {
+      setEventDetails(updatedEvent);
+    }
+
+    // Close the sheet
+    setSheetOpen(false);
   }
   function handleSelectableEventCreation(selectableInfo: DateSelectArg) {
-    // ... existing logic
     setSelectableEvent({
       start: selectableInfo.startStr,
       end: selectableInfo.endStr,
       startDate: selectableInfo.start,
       endDate: selectableInfo.end,
     });
+
+    console.log(selectableEvent);
+
     setSelectDateModalOpen(true);
   }
 
   return (
     <div className='flex flex-col h-full w-full'>
-      {/* MAIN CARD CONTAINER 
-          - bg-[#1c1c21]: Dark card background
-          - rounded-[32px]: Matches your design aesthetic (on desktop)
-          - border-white/5: Subtle edge highlight
-      */}
-      <div className='flex-1 bg-[#1c1c21] md:rounded-[32px] overflow-hidden shadow-2xl border border-white/5 relative'>
-        {/* RESPONSIVE SCROLL WRAPPER 
-            - overflow-x-auto: Allows horizontal scrolling on small screens
-            - overflow-y-hidden: Prevents double vertical scrollbars 
-        */}
-        <div className='w-full h-full overflow-x-auto overflow-y-hidden'>
-          {/* MIN-WIDTH CONTAINER
-                - min-w-[800px]: Forces the calendar to be wide on mobile (scroll to see it)
-                - md:min-w-0: On desktop, it fits naturally without scrolling
-            */}
+      <div className='flex-1 bg-[#1c1c21] md:rounded-[32px]  shadow-2xl border border-white/5 relative'>
+        <div className='w-full h-full '>
           <div
             className='h-full min-w-[800px] md:min-w-0'
             data-custom-calendar>
@@ -207,6 +287,8 @@ const Dashboard = () => {
               titleFormat={{ month: 'long', year: 'numeric' }}
               nowIndicator={true}
               allDaySlot={false}
+              slotMinTime='00:00:00'
+              slotMaxTime='24:00:00'
               slotDuration='00:30:00'
               slotLabelInterval={'1:00'}
               dayHeaderFormat={{ weekday: 'long', day: 'numeric' }}

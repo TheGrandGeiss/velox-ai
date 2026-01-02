@@ -5,15 +5,42 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  Calendar,
-  User,
   Settings,
   LogOut,
   ChevronUp,
+  Sparkles, // New Icon for AI
+  CheckCircle2,
+  Circle,
+  ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserAvatarField } from './userAvatarField';
-import { signOut } from 'next-auth/react'; // Assuming next-auth for logout
+import { signOut } from 'next-auth/react';
+
+// Mock Data for the sidebar list
+const UPCOMING_EVENTS = [
+  {
+    id: '1',
+    title: 'Marketing Sync',
+    date: '10:00 AM',
+    isCompleted: false,
+    color: '#b591ef',
+  },
+  {
+    id: '2',
+    title: 'Client Review',
+    date: '1:00 PM',
+    isCompleted: true,
+    color: '#9ceca6',
+  },
+  {
+    id: '3',
+    title: 'Design Sprint',
+    date: 'Tomorrow',
+    isCompleted: false,
+    color: '#f2d785',
+  },
+];
 
 interface SidebarProps {
   className?: string;
@@ -43,23 +70,17 @@ const Sidebar = ({ className }: SidebarProps) => {
       match: (path: string) => path === '/dashboard',
     },
     {
-      name: 'My Events',
-      href: '/events', // This will be your list format view
-      icon: Calendar,
-      match: (path: string) => path.startsWith('/events'),
-    },
-    {
-      name: 'Profile',
-      href: '/profile',
-      icon: User,
-      match: (path: string) => path.startsWith('/profile'),
+      name: 'Velox AI', // The new AI Chat Route
+      href: '/chat',
+      icon: Sparkles,
+      match: (path: string) => path.startsWith('/chat'),
     },
   ];
 
   return (
     <aside className={cn('flex flex-col h-full', className)}>
-      {/* 1. PRIMARY NAVIGATION ZONE */}
-      <nav className='flex-1 space-y-2 py-4'>
+      {/* 1. TOP NAVIGATION */}
+      <nav className='space-y-2 py-4'>
         {navItems.map((item) => {
           const isActive = item.match(pathname);
           return (
@@ -82,17 +103,76 @@ const Sidebar = ({ className }: SidebarProps) => {
                 )}
               />
               <span>{item.name}</span>
-
-              {/* Active Indicator Bar (Visual Anchor) */}
-              {isActive && (
-                <div className='ml-auto w-1.5 h-1.5 rounded-full bg-[#b591ef] shadow-[0_0_8px_#b591ef]' />
-              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* 2. USER UTILITY ZONE (Sticky Footer) */}
+      {/* 2. UPCOMING EVENTS WIDGET (The "Mini List") */}
+      <div className='flex-1 overflow-y-auto px-1 py-4'>
+        <div className='flex items-center justify-between mb-4 px-3'>
+          <h3 className='text-xs font-bold text-gray-500 uppercase tracking-widest'>
+            Upcoming
+          </h3>
+          <Link
+            href='/events'
+            className='text-[10px] font-semibold text-[#b591ef] hover:text-[#a37ce5] flex items-center gap-1 transition-colors'>
+            See All <ArrowRight size={10} />
+          </Link>
+        </div>
+
+        <div className='space-y-2'>
+          {UPCOMING_EVENTS.map((event) => (
+            <div
+              key={event.id}
+              className={cn(
+                'group flex items-start gap-3 p-3 rounded-2xl border border-transparent transition-all hover:bg-white/5',
+                event.isCompleted ? 'opacity-50' : 'bg-[#1c1c21] border-white/5'
+              )}>
+              {/* Checkbox Visual */}
+              <button className='mt-0.5 text-gray-500 hover:text-[#b591ef] transition-colors'>
+                {event.isCompleted ? (
+                  <CheckCircle2
+                    size={16}
+                    className='text-gray-500'
+                  />
+                ) : (
+                  <Circle size={16} />
+                )}
+              </button>
+
+              <div className='flex-1 min-w-0'>
+                <p
+                  className={cn(
+                    'text-sm font-medium truncate leading-tight',
+                    event.isCompleted
+                      ? 'text-gray-500 line-through'
+                      : 'text-gray-200'
+                  )}>
+                  {event.title}
+                </p>
+                <div className='flex items-center gap-2 mt-1.5'>
+                  <div
+                    className='w-1.5 h-1.5 rounded-full'
+                    style={{ backgroundColor: event.color }}
+                  />
+                  <span className='text-[10px] text-gray-400 font-medium'>
+                    {event.date}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {UPCOMING_EVENTS.length === 0 && (
+            <div className='px-4 py-8 text-center border border-dashed border-white/10 rounded-2xl'>
+              <p className='text-xs text-gray-500'>No upcoming tasks</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. USER UTILITY ZONE (Sticky Footer) */}
       <div
         className='mt-auto pt-4 border-t border-white/5 relative'
         ref={menuRef}>
@@ -104,21 +184,14 @@ const Sidebar = ({ className }: SidebarProps) => {
                 href='/profile'
                 className='flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors'
                 onClick={() => setIsUserMenuOpen(false)}>
-                <User size={16} />
-                Your Profile
-              </Link>
-              <Link
-                href='/settings'
-                className='flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors'
-                onClick={() => setIsUserMenuOpen(false)}>
                 <Settings size={16} />
-                Settings
+                Profile & Settings
               </Link>
 
               <div className='h-[1px] bg-white/5 my-1' />
 
               <button
-                onClick={() => signOut()} // Or your logout logic
+                onClick={() => signOut()}
                 className='flex items-center gap-3 w-full text-left px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors'>
                 <LogOut size={16} />
                 Log Out
@@ -131,19 +204,16 @@ const Sidebar = ({ className }: SidebarProps) => {
         <button
           onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
           className={cn(
-            'w-full flex items-center justify-between p-2 rounded-2xl transition-all border border-transparent',
+            'w-full flex items-center justify-between p-2 rounded-2xl transition-all border border-transparent group',
             isUserMenuOpen ? 'bg-[#1c1c21] border-white/10' : 'hover:bg-white/5'
           )}>
-          <div className='flex items-center gap-3 overflow-hidden'>
-            {/* Reusing your Avatar Component */}
-            <div className='pointer-events-none'>
-              <UserAvatarField />
-            </div>
+          <div className='flex items-center gap-3 overflow-hidden pointer-events-none'>
+            <UserAvatarField />
           </div>
           <ChevronUp
             size={16}
             className={cn(
-              'text-gray-500 transition-transform duration-200',
+              'text-gray-500 transition-transform duration-200 group-hover:text-white',
               isUserMenuOpen && 'rotate-180'
             )}
           />

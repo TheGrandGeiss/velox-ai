@@ -12,27 +12,32 @@ import {
 import { Button } from '@/components/ui/button';
 import { Outfit } from 'next/font/google';
 
-// Load the font to ensure consistency
 const outfit = Outfit({ subsets: ['latin'] });
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
-    // 1. Parent Container: Fixed viewport height (h-screen), dark background, flex row
+    // 1. Parent Container:
+    // - Changed 'h-screen' to 'min-h-screen' (allows growth).
+    // - Removed 'overflow-hidden' so the browser scrollbar activates.
     <div
-      className={`flex h-screen w-full bg-[#0d0e12] overflow-hidden ${outfit.className}`}>
-      {/* 2. Desktop Sidebar: Hidden on mobile (hidden), Visible on Desktop (md:block) */}
-      <div className='hidden md:block w-72 h-full border-r border-white/5 bg-[#0d0e12] shrink-0'>
+      className={`flex w-full bg-[#0d0e12] ${outfit.className} min-h-screen`}>
+      {/* 2. Desktop Sidebar: 
+          - Added 'sticky top-0 h-screen'. 
+          - Since the parent scrolls, 'sticky' keeps the sidebar visible 
+            while the user scrolls down the content. 
+      */}
+      <div className='hidden md:block w-72 border-r border-white/5 bg-[#0d0e12] shrink-0 sticky top-0 h-screen'>
         <div className='h-full p-6 overflow-y-auto'>
           <Sidebar />
         </div>
       </div>
 
       {/* 3. Main Content Wrapper */}
-      <div className='flex flex-col flex-1 h-full w-full min-w-0'>
-        {/* 4. Mobile Header: Visible only on small screens */}
-        <header className='md:hidden flex items-center justify-between p-4 bg-[#0d0e12] border-b border-white/5 shrink-0 z-50'>
+      <div className='flex flex-col flex-1 w-full min-w-0'>
+        {/* 4. Mobile Header */}
+        <header className='md:hidden flex items-center justify-between p-4 bg-[#0d0e12] border-b border-white/5 shrink-0 z-50 sticky top-0'>
           <h1 className='font-bold text-xl text-white tracking-tight'>
             Steady.
           </h1>
@@ -58,10 +63,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* 5. The Children Container: 
-             - flex-1: Fills remaining vertical space
-             - overflow-hidden: Prevents window scrollbars (lets Calendar scroll internally) 
+           - Removed 'overflow-hidden'.
+           - Removed 'h-full' restrictions so it grows naturally.
         */}
-        <main className='flex-1 flex flex-col p-2 md:p-6 overflow-hidden relative'>
+        <main className='flex-1 flex flex-col p-2 md:p-6 relative'>
           {children}
         </main>
       </div>

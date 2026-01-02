@@ -2,8 +2,6 @@ import Onboarding from '@/components/blocks/onboarding/onboarding';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/prisma';
 import { redirect } from 'next/navigation';
-// import Image from 'next/image';
-// import image from '@/assets/image2.svg';
 
 const page = async () => {
   const session = await auth();
