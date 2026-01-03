@@ -85,17 +85,17 @@ const Home = () => {
             </div>
 
             {/* Desktop Links */}
-            <ul className='hidden lg:flex gap-8 items-center'>
+            <div className='hidden lg:flex gap-8 items-center'>
               {navLinks.map((link) => (
                 <Link
                   key={link.id}
                   href={link.href}
                   className='group relative text-sm font-medium tracking-wide'>
-                  <li>{link.text}</li>
+                  <span>{link.text}</span>
                   <div className='h-[2px] w-0 bg-violet rounded-md group-hover:w-full transition-all duration-300 absolute -bottom-1 left-0'></div>
                 </Link>
               ))}
-            </ul>
+            </div>
 
             {/* Desktop Buttons */}
             <div className='hidden lg:flex flex-1 justify-end items-center gap-6'>
@@ -198,7 +198,7 @@ const Home = () => {
               alt='Velox App Interface'
               className='relative rounded-xl md:rounded-2xl shadow-2xl border border-gray-200 w-full h-auto'
               placeholder='blur' // Good practice if using static import
-              priority // Loads image faster since it's above fold
+              priority
             />
           </div>
         </section>
