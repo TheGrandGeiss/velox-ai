@@ -1,10 +1,12 @@
 import ProfilePage from '@/components/blocks/profile/profile';
+import { getUserProfile } from '@/lib/actions/profileAction';
 import React from 'react';
 
-const page = () => {
+const page = async () => {
+  const data = await getUserProfile();
   return (
     <>
-      <ProfilePage />
+      <ProfilePage initialData={data} />
     </>
   );
 };
