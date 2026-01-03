@@ -92,17 +92,20 @@ const Footer = () => {
               <Link
                 href='https://x.com/ChideraEbenebe'
                 target='_blank'
+                aria-label='Twitter / X'
                 className='w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-violet transition-colors duration-300'>
                 <FaTwitter size={18} />
               </Link>
               <Link
                 href='https://github.com/ChideraEbenebe'
                 target='_blank'
+                aria-label='Github'
                 className='w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-violet transition-colors duration-300'>
                 <FaGithub size={18} />
               </Link>
               <Link
                 target='_blank'
+                aria-label='linkedIn'
                 href='https://www.linkedin.com/in/chidera-ebenebe-a4b94b256/'
                 className='w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-violet transition-colors duration-300'>
                 <FaLinkedin size={18} />
