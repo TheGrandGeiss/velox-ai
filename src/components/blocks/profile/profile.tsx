@@ -4,15 +4,12 @@ import React, { useState, useRef, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Loader2, Save, User, Mail, Camera } from 'lucide-react';
-import { WeekendPreference } from '@prisma/client'; // ✅ Import directly from Prisma
-
-// Shadcn UI Imports
+import { CalendarIcon, Loader2, Save, Mail, Camera } from 'lucide-react';
+import { WeekendPreference } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,33 +39,50 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-
-// 👇 Import Schema AND the sessionLength array
+import { cn, getInitials } from '@/lib/utils';
 import {
   userPreferenceSchema,
   userPreferenceType,
   sessionLength,
 } from '@/lib/zodSchema/onboarding';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
+import { updateProfile } from '@/lib/actions/profileAction';
 
-const defaultValues: Partial<userPreferenceType> = {
-  username: 'johndoe',
-  mainGoal:
-    'To build a successful SaaS business while maintaining work-life balance.',
-  maxSessionLength: '60',
-  weekendPreference: 'LIGHT', // Using real Prisma enum
-  wakeUpTime: '07:00',
-  sleepTime: '23:00',
-};
-
-export default function ProfilePage() {
+export default function ProfilePage({
+  initialData,
+}: {
+  initialData: {
+    dob: string;
+    createdAt: string;
+    updatedAt: string;
+    username: string;
+    mainGoal: string;
+    maxSessionLength: string;
+    weekendPreference: WeekendPreference;
+    wakeUpTime: string;
+    sleepTime: string;
+    image: string | null;
+    id: string;
+    userId: string;
+  } | null;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: session } = useSession();
 
   const form = useForm<userPreferenceType>({
     resolver: zodResolver(userPreferenceSchema),
-    defaultValues,
+    defaultValues: {
+      username: initialData?.username,
+      mainGoal: initialData?.mainGoal,
+      maxSessionLength: initialData?.maxSessionLength,
+      weekendPreference: initialData?.weekendPreference,
+      wakeUpTime: initialData?.wakeUpTime,
+      sleepTime: initialData?.sleepTime,
+      dob: initialData?.dob ? new Date(initialData?.dob) : undefined,
+    },
     mode: 'onChange',
   });
 
@@ -84,15 +98,23 @@ export default function ProfilePage() {
   async function onSubmit(data: userPreferenceType) {
     setIsLoading(true);
     try {
-      console.log('Submitting:', data);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      alert('Preferences updated successfully!');
+      const updated = await updateProfile(data);
+
+      if (!updated.success) {
+        toast.error('failed to update user details');
+        return;
+      }
+
+      toast.success('Preferences updated successfully!');
     } catch (error) {
       console.error(error);
+      toast.error('failed to update user details');
     } finally {
       setIsLoading(false);
     }
   }
+
+  const initials = getInitials(initialData?.username);
 
   return (
     <div className='min-h-screen bg-[#0d0e12] text-white p-6 md:p-10 font-sans'>
@@ -108,7 +130,7 @@ export default function ProfilePage() {
                   className='object-cover'
                 />
                 <AvatarFallback className='bg-[#1c1c21] text-[#b591ef] text-xl'>
-                  JD
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               <div
@@ -127,11 +149,11 @@ export default function ProfilePage() {
 
             <div className='space-y-1'>
               <h1 className='text-3xl font-bold tracking-tight text-white'>
-                John Doe
+                {initialData?.username}
               </h1>
               <div className='flex items-center gap-2 text-gray-400'>
                 <Mail className='w-4 h-4' />
-                <span>john.doe@example.com</span>
+                <span>{session?.user?.email}</span>
               </div>
             </div>
           </div>

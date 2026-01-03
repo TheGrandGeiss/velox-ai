@@ -51,14 +51,11 @@ import {
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
-
-// Logic & Actions
 import {
   userPreferenceSchema,
   userPreferenceType,
-} from '@/lib/zodSchema/onboarding'; // Adjusted path to match previous context
+} from '@/lib/zodSchema/onboarding'; // Verified import path
 import { createProfile } from '@/lib/actions/profileAction';
-// import { redirect } from 'next/navigation'; // Removed redirect import as it's not used directly in component body often
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -66,14 +63,20 @@ const Onboarding = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 3;
 
+  // --- Date Picker Local State ---
+  // We initialize these, but they will be controlled by the FormField below
+  const [open, setOpen] = React.useState(false);
+  const [month, setMonth] = React.useState<Date | undefined>(new Date());
+  const [inputValue, setInputValue] = React.useState('');
+
   const form = useForm<userPreferenceType>({
     resolver: zodResolver(userPreferenceSchema),
     defaultValues: {
       username: '',
-      // dob: new Date(), // Zod often expects undefined initially if not set
+      // dob: undefined, // Let Zod handle required validation
       mainGoal: '',
       maxSessionLength: '30',
-      weekendPreference: 'FULL', // Matching typical Prisma Enum default
+      weekendPreference: 'FULL',
       wakeUpTime: '',
       sleepTime: '',
     },
@@ -83,6 +86,26 @@ const Onboarding = () => {
   // Calculate progress percentage
   const progress = (step / totalSteps) * 100;
 
+  // --- HELPERS ---
+  const inputStyles =
+    'bg-[#0d0e12] border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-[#b591ef] focus-visible:border-[#b591ef] h-12 text-base';
+  const labelStyles = 'text-gray-300 font-medium mb-2 block';
+  const cardStyles = 'bg-[#1c1c21] border border-white/5 shadow-2xl';
+
+  function formatDate(date: Date | undefined) {
+    if (!date) return '';
+    return date.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  function isValidDate(date: Date | undefined) {
+    if (!date) return false;
+    return !isNaN(date.getTime());
+  }
+
   const handleNext = async () => {
     let isValid = false;
     if (step === 1) {
@@ -90,7 +113,6 @@ const Onboarding = () => {
     } else if (step === 2) {
       isValid = await form.trigger(['username', 'dob', 'mainGoal']);
     }
-
     if (isValid) setStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
@@ -101,19 +123,11 @@ const Onboarding = () => {
   const onSubmit = async (values: userPreferenceType) => {
     try {
       await createProfile(values);
-      // We use window.location or router.push in client components usually
       window.location.href = '/dashboard';
     } catch (error) {
       console.error('Onboarding failed', error);
     }
   };
-
-  // --- STYLES ---
-  // Reusable styles to ensure consistency
-  const inputStyles =
-    'bg-[#0d0e12] border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-[#b591ef] focus-visible:border-[#b591ef] h-12 text-base';
-  const labelStyles = 'text-gray-300 font-medium mb-2 block';
-  const cardStyles = 'bg-[#1c1c21] border border-white/5 shadow-2xl';
 
   return (
     <div
@@ -143,14 +157,14 @@ const Onboarding = () => {
 
           <div className='space-y-2'>
             <h2 className='text-3xl md:text-4xl font-bold text-white tracking-tight'>
-              {step === 1 && 'Welcome to Steady'}
+              {step === 1 && 'Welcome to Velox'}
               {step === 2 && 'Tell us about yourself'}
               {step === 3 && 'Your Daily Rhythm'}
             </h2>
             <p className='text-gray-400 text-base max-w-md mx-auto'>
               {step === 1 && "Let's set up your AI productivity companion."}
               {step === 2 && 'This helps us personalize your experience.'}
-              {step === 3 && 'Customize how Steady plans your day.'}
+              {step === 3 && 'Customize how Velox plans your day.'}
             </p>
           </div>
         </CardHeader>
@@ -164,11 +178,11 @@ const Onboarding = () => {
               <div className={cn('space-y-8 py-4', step !== 1 && 'hidden')}>
                 <div className='text-center space-y-8'>
                   <p className='text-gray-300 leading-relaxed text-lg max-w-lg mx-auto'>
-                    Steady helps you plan smarter, focus deeper, and get more
+                    Velox helps you plan smarter, focus deeper, and get more
                     done. We just need a few details to tailor the AI to your
                     specific needs.
                   </p>
-
+                  {/* Feature Pills */}
                   <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                     <div className='p-4 bg-white/5 rounded-xl border border-white/5 flex flex-col items-center gap-2'>
                       <span className='text-2xl'>🧠</span>
@@ -189,7 +203,6 @@ const Onboarding = () => {
                       </span>
                     </div>
                   </div>
-
                   <div className='bg-[#b591ef]/10 p-3 rounded-lg border border-[#b591ef]/20 text-sm text-[#b591ef] inline-block'>
                     🚀 Takes less than 60 seconds to complete.
                   </div>
@@ -220,6 +233,7 @@ const Onboarding = () => {
                   )}
                 />
 
+                {/* ✅ HYBRID DATE PICKER (Text Input + Popover Calendar) */}
                 <FormField
                   control={form.control}
                   name='dob'
@@ -228,40 +242,94 @@ const Onboarding = () => {
                       <FormLabel className={labelStyles}>
                         Date of Birth
                       </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant='outline'
-                              className={cn(
-                                'w-full pl-3 text-left font-normal border-white/10 hover:bg-white/5 hover:text-white',
-                                inputStyles,
-                                !field.value && 'text-gray-500'
-                              )}>
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className='w-auto p-0 bg-[#1c1c21] border-white/10 text-white'
-                          align='start'>
-                          <Calendar
-                            mode='single'
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date('1900-01-01')
+                      <div className='relative flex items-center gap-2'>
+                        {/* 1. Text Input */}
+                        <FormControl>
+                          <Input
+                            {...field}
+                            id='date'
+                            type='text'
+                            // Value logic: Use local state if typing, or formatted date if picked
+                            value={
+                              inputValue ||
+                              (field.value ? formatDate(field.value) : '')
                             }
-                            initialFocus
-                            className='bg-[#1c1c21] text-white'
+                            placeholder='June 01, 2000'
+                            // Add padding-right to make room for the icon
+                            className={cn(inputStyles, 'pr-10')}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setInputValue(newValue); // Update text immediately
+
+                              const parsedDate = new Date(newValue);
+                              // Sync with RHF and Calendar if valid
+                              if (
+                                isValidDate(parsedDate) &&
+                                newValue.length > 4
+                              ) {
+                                field.onChange(parsedDate);
+                                setMonth(parsedDate);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                setOpen(true);
+                              }
+                            }}
                           />
-                        </PopoverContent>
-                      </Popover>
+                        </FormControl>
+
+                        {/* 2. Popover Trigger Button (Absolute Positioned) */}
+                        <Popover
+                          open={open}
+                          onOpenChange={setOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant='ghost'
+                              type='button'
+                              className='absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-transparent'
+                              onClick={() => setOpen(true)}>
+                              <CalendarIcon className='h-4 w-4' />
+                              <span className='sr-only'>Select date</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className='w-auto p-0 bg-[#1c1c21] border-white/10 text-white'
+                            align='end'>
+                            <Calendar
+                              mode='single'
+                              selected={field.value}
+                              month={month}
+                              onMonthChange={setMonth}
+                              onSelect={(date) => {
+                                if (date) {
+                                  field.onChange(date);
+                                  setInputValue(formatDate(date));
+                                  setMonth(date);
+                                  setOpen(false);
+                                }
+                              }}
+                              disabled={(date) =>
+                                date > new Date() ||
+                                date < new Date('1900-01-01')
+                              }
+                              // Shadcn Dropdown Layout for Years
+                              captionLayout='dropdown'
+                              fromYear={1900}
+                              toYear={new Date().getFullYear()}
+                              className='bg-[#1c1c21] text-white'
+                              classNames={{
+                                dropdown:
+                                  'bg-[#1c1c21] text-white border border-white/10 p-1 rounded-md hover:bg-white/10 outline-none',
+                                dropdown_month: 'mr-2',
+                                dropdown_year: 'ml-2',
+                                caption_label: 'hidden',
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                       <FormMessage className='text-red-400' />
                     </FormItem>
                   )}
@@ -306,7 +374,7 @@ const Onboarding = () => {
                         <FormControl>
                           <Input
                             type='time'
-                            className={`${inputStyles} [color-scheme:dark]`} // Forces dark time picker
+                            className={`${inputStyles} [color-scheme:dark]`}
                             {...field}
                           />
                         </FormControl>
@@ -357,13 +425,13 @@ const Onboarding = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className='bg-[#1c1c21] border-white/10 text-white'>
-                          <SelectItem value='FULL_WORK'>
+                          <SelectItem value='FULL'>
                             Full Schedule (Productive)
                           </SelectItem>
-                          <SelectItem value='LIGHT_WORK'>
+                          <SelectItem value='LIGHT'>
                             Light Schedule (Balanced)
                           </SelectItem>
-                          <SelectItem value='NO_WORK'>
+                          <SelectItem value='NONE'>
                             No Schedule (Rest)
                           </SelectItem>
                         </SelectContent>
