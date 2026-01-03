@@ -25,7 +25,10 @@ export function UserAvatarField() {
   return (
     <div className='flex items-center gap-3 text-left min-w-0'>
       <Avatar className='h-9 w-9 border border-white/10'>
-        <AvatarImage src={session.user.image || ''} />
+        <AvatarImage
+          src={session.user.image || ''}
+          alt='User Image'
+        />
         <AvatarFallback className='bg-purple-600 text-white text-xs'>
           {session.user.name?.slice(0, 2).toUpperCase() || 'US'}
         </AvatarFallback>
