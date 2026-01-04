@@ -10,15 +10,16 @@ export default {
   trustHost: true,
   providers: [
     Google({
-      authorization: {
-        params: {
-          prompt: 'consent',
+      // 1. THE FIX: We construct the URL manually to prevent NextAuth from ignoring params
+      authorization:
+        'https://accounts.google.com/o/oauth2/v2/auth?' +
+        new URLSearchParams({
+          prompt: 'consent select_account',
           access_type: 'offline',
           response_type: 'code',
           scope:
             'openid profile email https://www.googleapis.com/auth/calendar',
-        },
-      },
+        }).toString(),
     }),
     Resend({
       from: 'onboarding@resend.dev',

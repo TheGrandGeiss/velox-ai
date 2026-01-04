@@ -25,9 +25,15 @@ export async function saveMessageToDB(
     throw new Error('No profile found for user');
   }
 
+  // Validate required fields for Prisma Message model
+  if (!message.content) {
+    throw new Error('Message content is required');
+  }
+
   await prisma.message.create({
     data: {
-      ...message,
+      role: message.role,
+      content: message.content,
       profile: {
         connect: {
           id: userProfile.id,
@@ -52,5 +58,12 @@ export const fetchMessagesFromDB = async (session: string | undefined) => {
     },
   });
 
-  return chat as Message[];
+  // Map Prisma Message to TypeScript Message type
+  return chat.map((message) => ({
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    createdAt: message.createdAt,
+    start: message.createdAt.toISOString(), // Use createdAt as fallback for required start field
+  })) as Message[];
 };
