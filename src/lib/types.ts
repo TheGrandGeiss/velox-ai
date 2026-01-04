@@ -24,7 +24,8 @@ export interface Event {
   backgroundColor?: string;
   borderColor?: string;
   textColor?: string;
-  createdAt?: string; // optional when sending to frontend
+  createdAt?: string;
+  isComplete?: boolean; // optional when sending to frontend
 }
 
 export type CategoryType =
@@ -34,4 +35,4 @@ export type CategoryType =
   | 'Personal/Creative'
   | 'Chores/Errands'
   | 'Social/Leisure'
-  | 'Default';
+  | 'Break';

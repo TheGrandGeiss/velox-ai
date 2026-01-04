@@ -70,7 +70,6 @@ const ChatBotMessageField = ({
           onKeyDown={handleKeyDown}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          disabled={loading}
           rows={1}
         />
 

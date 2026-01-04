@@ -70,7 +70,7 @@ export const categoryTypes = [
     textColor: '#004D40',
   },
   {
-    name: 'Default',
+    name: 'Break',
     backgroundColor: '#F5F5F5',
     borderColor: '#616161',
     textColor: '#212121',
@@ -180,7 +180,7 @@ const CreateOnSelect = ({
 
       start: '',
       end: '',
-      category: 'Default',
+      category: 'Break',
       allDay: false,
       backgroundColor: '#F5F5F5',
       borderColor: '#616161',

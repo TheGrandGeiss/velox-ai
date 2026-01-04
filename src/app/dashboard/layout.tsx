@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Outfit } from 'next/font/google';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -18,29 +19,25 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
-    // 1. Parent Container:
-    // - Changed 'h-screen' to 'min-h-screen' (allows growth).
-    // - Removed 'overflow-hidden' so the browser scrollbar activates.
     <div
       className={`flex w-full bg-[#0d0e12] ${outfit.className} min-h-screen`}>
-      {/* 2. Desktop Sidebar: 
-          - Added 'sticky top-0 h-screen'. 
-          - Since the parent scrolls, 'sticky' keeps the sidebar visible 
-            while the user scrolls down the content. 
+      {/* FIX 1: CHANGED 'md:block' TO 'lg:block'
+         This ensures the sidebar is HIDDEN on Tablets (iPad Portrait).
+         It only appears on Laptops/Desktops (1024px+).
       */}
-      <div className='hidden md:block w-72 border-r border-white/5 bg-[#0d0e12] shrink-0 sticky top-0 h-screen'>
-        <div className='h-full p-6 overflow-y-auto'>
+      <div className='hidden lg:block w-72 border-r border-white/5 bg-[#0d0e12] shrink-0 sticky top-0 h-screen'>
+        <div className='h-full p-6 overflow-y-auto custom-scrollbar'>
           <Sidebar />
         </div>
       </div>
 
-      {/* 3. Main Content Wrapper */}
+      {/* Main Content Wrapper */}
       <div className='flex flex-col flex-1 w-full min-w-0'>
-        {/* 4. Mobile Header */}
-        <header className='md:hidden flex items-center justify-between p-4 bg-[#0d0e12] border-b border-white/5 shrink-0 z-50 sticky top-0'>
-          <h1 className='font-bold text-xl text-white tracking-tight'>
-            Steady.
-          </h1>
+        {/* FIX 2: CHANGED 'md:hidden' TO 'lg:hidden'
+           This shows the Hamburger Menu on Tablets now.
+        */}
+        <header className='lg:hidden flex items-center justify-between p-4 bg-[#0d0e12] border-b border-white/5 shrink-0 z-50 sticky top-0'>
+          <h1 className='font-bold text-xl text-white tracking-tight'>Velox</h1>
 
           <Sheet
             open={isMobileOpen}
@@ -53,19 +50,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <Menu className='h-6 w-6' />
               </Button>
             </SheetTrigger>
+
+            {/* SheetContent is the "Slide-over" drawer */}
             <SheetContent
               side='left'
-              className='w-[300px] bg-[#0d0e12] border-r-white/10 text-white p-6'>
+              className='w-[300px] bg-[#0d0e12] border-r-white/10 text-white p-0'>
               <SheetTitle className='sr-only'>Navigation Menu</SheetTitle>
-              <Sidebar />
+              {/* Added padding inside the scroll area, not the sheet wrapper */}
+              <div className='h-full p-6 overflow-y-auto'>
+                <Sidebar />
+              </div>
             </SheetContent>
           </Sheet>
         </header>
 
-        {/* 5. The Children Container: 
-           - Removed 'overflow-hidden'.
-           - Removed 'h-full' restrictions so it grows naturally.
-        */}
+        {/* Page Content */}
         <main className='flex-1 flex flex-col p-2 md:p-6 relative'>
           {children}
         </main>

@@ -1,47 +1,23 @@
+// components/blocks/dashboard/sidebar.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Settings,
   LogOut,
-  ChevronUp,
-  Sparkles, // New Icon for AI
+  Sparkles,
   CheckCircle2,
   Circle,
   ArrowRight,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { UserAvatarField } from './userAvatarField';
 import { signOut } from 'next-auth/react';
-import { getUpcomingEvents } from '@/lib/actions/getUpcomingEvents';
-
-// Mock Data for the sidebar list
-const UPCOMING_EVENTS = [
-  {
-    id: '1',
-    title: 'Marketing Sync',
-    date: '10:00 AM',
-    isCompleted: false,
-    color: '#b591ef',
-  },
-  {
-    id: '2',
-    title: 'Client Review',
-    date: '1:00 PM',
-    isCompleted: true,
-    color: '#9ceca6',
-  },
-  {
-    id: '3',
-    title: 'Design Sprint',
-    date: 'Tomorrow',
-    isCompleted: false,
-    color: '#f2d785',
-  },
-];
+import { UserAvatarField } from './userAvatarField';
+import { getUpcomingEvents } from '@/lib/actions/getUpcomingEvents'; // Check this path
 
 interface UpcomingEventsType {
   id: string;
@@ -51,60 +27,49 @@ interface UpcomingEventsType {
   isCompleted: boolean;
 }
 
-interface SidebarProps {
-  className?: string;
-}
-
-const Sidebar = ({ className }: SidebarProps) => {
+const Sidebar = ({ className }: { className?: string }) => {
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [upComingEvents, setUpcomingEvents] = useState<
     UpcomingEventsType[] | null
   >([]);
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Hook 1: Handle Outside Click (UI Logic)
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
+  // --- FETCHING LOGIC RESTORED ---
   useEffect(() => {
     fetchUpcoming();
+
+    // Auto-refresh every 60 seconds (keeps "Upcoming" accurate)
     const interval = setInterval(fetchUpcoming, 60000);
     return () => clearInterval(interval);
   }, []);
 
   async function fetchUpcoming() {
     try {
-      // 2. Fetch the raw data from the server action
       const rawEvents = await getUpcomingEvents();
 
-      if (!rawEvents) return;
+      if (!rawEvents) {
+        setUpcomingEvents([]);
+        return;
+      }
 
-      // 3. Map the DB structure to your UI Interface
-      const formattedEvents: UpcomingEventsType[] = rawEvents.map(
-        (event: any) => ({
+      // Format and slice to ensure max 3 items
+      const formattedEvents = rawEvents
+        .slice(0, 3) // <--- Safety Limit: Only show top 3
+        .map((event: any) => ({
           id: event.id,
           title: event.title,
-          isCompleted: false,
+          isCompleted: !!event.isComplete, // Ensure boolean
           date: new Date(event.start),
-
           color: event.backgroundColor || '#b591ef',
-        })
-      );
+        }));
 
-      // 4. Update the state
       setUpcomingEvents(formattedEvents);
     } catch (error) {
-      console.error('Failed to fetch upcoming events', error);
+      console.error('Failed to fetch events', error);
+      setUpcomingEvents([]);
     }
   }
+
   const navItems = [
     {
       name: 'Dashboard',
@@ -113,7 +78,7 @@ const Sidebar = ({ className }: SidebarProps) => {
       match: (path: string) => path === '/dashboard',
     },
     {
-      name: 'Velox AI', // The new AI Chat Route
+      name: 'Velox AI',
       href: '/chat',
       icon: Sparkles,
       match: (path: string) => path.startsWith('/chat'),
@@ -121,9 +86,10 @@ const Sidebar = ({ className }: SidebarProps) => {
   ];
 
   return (
-    <aside className={cn('flex flex-col h-full', className)}>
-      {/* 1. TOP NAVIGATION */}
-      <nav className='space-y-2 py-4'>
+    // "Dumb" Container - lets Layout handle width/position
+    <aside className={cn('flex flex-col h-full w-full space-y-4', className)}>
+      {/* 1. LINKS */}
+      <nav className='space-y-2 py-2'>
         {navItems.map((item) => {
           const isActive = item.match(pathname);
           return (
@@ -151,14 +117,14 @@ const Sidebar = ({ className }: SidebarProps) => {
         })}
       </nav>
 
-      {/* 2. UPCOMING EVENTS WIDGET (The "Mini List") */}
-      <div className='flex-1 overflow-y-auto px-1 py-4'>
+      {/* 2. EVENTS WIDGET (The "Mini List") */}
+      <div className='flex-1 overflow-y-auto px-1 py-4 custom-scrollbar'>
         <div className='flex items-center justify-between mb-4 px-3'>
           <h3 className='text-xs font-bold text-gray-500 uppercase tracking-widest'>
             Upcoming
           </h3>
           <Link
-            href='/events'
+            href='/dashboard/events'
             className='text-[10px] font-semibold text-[#b591ef] hover:text-[#a37ce5] flex items-center gap-1 transition-colors'>
             See All <ArrowRight size={10} />
           </Link>
@@ -172,8 +138,8 @@ const Sidebar = ({ className }: SidebarProps) => {
                 'group flex items-start gap-3 p-3 rounded-2xl border border-transparent transition-all hover:bg-white/5',
                 event.isCompleted ? 'opacity-50' : 'bg-[#1c1c21] border-white/5'
               )}>
-              {/* Checkbox Visual */}
-              <button className='mt-0.5 text-gray-500 hover:text-[#b591ef] transition-colors'>
+              {/* Checkbox Visual Only */}
+              <button className='mt-0.5 text-gray-500 hover:text-[#b591ef] transition-colors cursor-default'>
                 {event.isCompleted ? (
                   <CheckCircle2
                     size={16}
@@ -200,10 +166,10 @@ const Sidebar = ({ className }: SidebarProps) => {
                     style={{ backgroundColor: event.color }}
                   />
                   <span className='text-[10px] text-gray-400 font-medium'>
-                    {event.date.toLocaleTimeString('en-us', {
+                    {event.date.toLocaleTimeString([], {
                       hour: 'numeric',
                       minute: '2-digit',
-                      hour12: true,
+                      // hour12: true (default for en-US locale)
                     })}
                   </span>
                 </div>
@@ -211,7 +177,8 @@ const Sidebar = ({ className }: SidebarProps) => {
             </div>
           ))}
 
-          {UPCOMING_EVENTS.length === 0 && (
+          {/* Empty State */}
+          {upComingEvents && upComingEvents.length === 0 && (
             <div className='px-4 py-8 text-center border border-dashed border-white/10 rounded-2xl'>
               <p className='text-xs text-gray-500'>No upcoming tasks</p>
             </div>
@@ -219,24 +186,17 @@ const Sidebar = ({ className }: SidebarProps) => {
         </div>
       </div>
 
-      {/* 3. USER UTILITY ZONE (Sticky Footer) */}
-      <div
-        className='mt-auto pt-4 border-t border-white/5 relative'
-        ref={menuRef}>
-        {/* The "Dropup" Menu */}
+      {/* 3. USER MENU */}
+      <div className='mt-auto pt-4 border-t border-white/5 relative'>
         {isUserMenuOpen && (
-          <div className='absolute bottom-full left-0 w-full mb-3 p-1 bg-[#1c1c21] border border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 z-50'>
+          <div className='absolute bottom-full left-0 w-full mb-2 p-1 bg-[#1c1c21] border border-white/10 rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2'>
             <div className='flex flex-col gap-1'>
               <Link
                 href='/dashboard/profile'
-                className='flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors'
-                onClick={() => setIsUserMenuOpen(false)}>
+                className='flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors'>
                 <Settings size={16} />
-                Profile & Settings
+                Profile
               </Link>
-
-              <div className='h-[1px] bg-white/5 my-1' />
-
               <button
                 onClick={() => signOut()}
                 className='flex items-center gap-3 w-full text-left px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors'>
@@ -247,11 +207,10 @@ const Sidebar = ({ className }: SidebarProps) => {
           </div>
         )}
 
-        {/* User Object Trigger */}
         <button
           onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
           className={cn(
-            'w-full flex items-center justify-between p-2 rounded-2xl transition-all border border-transparent group',
+            'w-full flex items-center justify-between p-2 rounded-2xl transition-all border border-transparent',
             isUserMenuOpen ? 'bg-[#1c1c21] border-white/10' : 'hover:bg-white/5'
           )}>
           <div className='flex items-center gap-3 overflow-hidden pointer-events-none'>
@@ -260,7 +219,7 @@ const Sidebar = ({ className }: SidebarProps) => {
           <ChevronUp
             size={16}
             className={cn(
-              'text-gray-500 transition-transform duration-200 group-hover:text-white',
+              'text-gray-500 transition-transform duration-200',
               isUserMenuOpen && 'rotate-180'
             )}
           />

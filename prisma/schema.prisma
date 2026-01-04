@@ -126,6 +126,7 @@ model Event {
   borderColor     String?
   category        String?
   textColor       String?
+  isComplete      Boolean?
 
   createdAt DateTime @default(now())
 

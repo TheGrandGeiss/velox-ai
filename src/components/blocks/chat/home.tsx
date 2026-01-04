@@ -6,19 +6,18 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles, Bot } from 'lucide-react';
 import { Message } from '@/lib/types';
-import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 import { cn } from '@/lib/utils';
 import { Outfit } from 'next/font/google';
+import { Session } from 'next-auth';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
-const ScheduleHome = () => {
+const ScheduleHome = ({ session }: { session: Session }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [tasks, setTasks] = useState<any[]>([]);
-  const { data: session } = useSession();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change
@@ -89,7 +88,7 @@ const ScheduleHome = () => {
         redirect('signin');
       }
 
-      await getValidAccessToken(session.user?.id);
+      const accessToken = await getValidAccessToken(session.user?.id);
 
       if (!message || !message.content?.trim()) {
         throw new Error('Please enter a message');
@@ -125,6 +124,7 @@ const ScheduleHome = () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          'X-Google-Token': accessToken,
         },
         body: JSON.stringify({
           content: message.content,

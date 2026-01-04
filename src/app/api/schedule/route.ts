@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { prisma } from '@/prisma';
 import { auth } from '@/lib/auth';
-import { calendar_v3 } from 'googleapis';
+
 import { googleClient } from '@/lib/actions/InitializeGoogleClient';
+
+export const maxDuration = 60;
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_AI_API_KEY });
 
@@ -11,6 +13,7 @@ export async function POST(req: Request) {
   const session = await auth();
   try {
     const { content } = await req.json();
+    const token = req.headers.get('X-Google-Token');
 
     if (!content) {
       return NextResponse.json(
@@ -205,7 +208,7 @@ CATEGORY COLOR SCHEME:
   * borderColor: #00695C (dark teal)
   * textColor: #004D40 (very dark teal)
 
-- Default: 
+- Break: 
   * backgroundColor: #F5F5F5 (light gray)
   * borderColor: #616161 (dark gray)
   * textColor: #212121 (very dark gray)
@@ -221,7 +224,7 @@ SCHEDULING RULES:
    - If user says "today" → use ${currentDateOnly}
    - If user says "tomorrow" → use ${tomorrowDateOnly}
    - If user says "next week" → use ${nextWeekDateOnly}
-   - If no date specified → default to ${tomorrowDateOnly}
+   - If no date specified → default to ${currentDateOnly}
 
 3. TIME BOUNDARIES:
    - Start no earlier than user's wake-up time: ${userProfile.wakeUpTime}
@@ -240,7 +243,7 @@ SCHEDULING RULES:
 
 6. TECHNICAL REQUIREMENTS:
    - Ensure events don't overlap
-   - Use realistic durations (minimum 30 minutes, maximum 4 hours per session)
+   - Use realistic durations (minimum 30 minutes, maximum ${userProfile.maxSessionLength} minutes per session)
    - Include color coding based on task categories with proper contrast
    - All times must be valid ISO 8601 format
    - backgroundColor should be lighter than borderColor for visual hierarchy
@@ -306,7 +309,7 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
       },
     });
 
-    const userAccount = await prisma.account.findFirst({
+    await prisma.account.findFirst({
       where: {
         userId: session?.user?.id,
       },
@@ -315,9 +318,9 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
     // Initialize Google Calendar client once (outside the loop)
     let calendar = null;
     try {
-      calendar = await googleClient(userAccount?.access_token);
+      calendar = await googleClient(token);
     } catch (googleClientError) {
-      console.warn(
+      console.log(
         'Google Client initialization failed (Non-critical):',
         googleClientError
       );
@@ -327,8 +330,7 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
     // Process each task independently
     for (const task of tasksArray) {
       try {
-        // 1. Create in Prisma FIRST (this should always succeed)
-        const prismaEvent = await prisma.event.create({
+        await prisma.event.create({
           data: {
             title: task.title,
             description: task.description,
@@ -350,8 +352,6 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
             await calendar.events.insert({
               calendarId: 'primary',
               requestBody: {
-                // Don't use Prisma ID - let Google generate its own ID
-                // We can store the Google ID in Prisma later if needed
                 summary: task.title,
                 description: task.description,
                 start: { dateTime: new Date(task.start).toISOString() },
@@ -377,17 +377,9 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
           `Failed to create event "${task.title}" in database:`,
           prismaError
         );
-        // Continue to next task even if this one fails
       }
     }
 
-    // const event:calendar_v3.Schema$Event ={
-    //   summary: tasks
-    // }
-
-    // Fetch all existing events for this profile
-
-    // Return both new tasks and all existing tasks
     return NextResponse.json({
       tasks: tasksArray,
     });

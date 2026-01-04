@@ -1,3 +1,5 @@
+'use client';
+
 import { Outfit } from 'next/font/google';
 import {
   Accordion,
