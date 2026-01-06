@@ -1,6 +1,7 @@
 import Onboarding from '@/components/blocks/onboarding/onboarding';
+import { getOnboardingData } from '@/lib/actions/getOnboardingData';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/prisma';
+
 import { redirect } from 'next/navigation';
 
 const page = async () => {
@@ -10,15 +11,11 @@ const page = async () => {
     redirect('/login');
   }
 
-  // const onboardingDataExists = await prisma.profile.findUnique({
-  //   where: {
-  //     userId: session.user.id,
-  //   },
-  // });
+  const onboardingDataExists = await getOnboardingData(session);
 
-  // if (onboardingDataExists) {
-  //   redirect('/dashboard');
-  // }
+  if (onboardingDataExists) {
+    redirect('/dashboard');
+  }
 
   return (
     <div className='h-screen'>
