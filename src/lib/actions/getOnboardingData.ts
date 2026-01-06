@@ -4,7 +4,7 @@ import { prisma } from '@/prisma';
 import { Session } from 'next-auth';
 import { redirect } from 'next/navigation';
 
-export async function getOnboardingData(session: Session) {
+export async function getOnboardingData(session: Session): Promise<boolean> {
   if (!session.user) {
     redirect('login');
   }
@@ -13,4 +13,6 @@ export async function getOnboardingData(session: Session) {
       userId: session.user.id,
     },
   });
+
+  return !!onboardingDataExists;
 }
