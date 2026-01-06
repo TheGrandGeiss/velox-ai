@@ -2,7 +2,6 @@ import type { NextAuthConfig } from 'next-auth';
 import Resend from 'next-auth/providers/resend';
 import { Resend as ResendClient } from 'resend';
 import Google from 'next-auth/providers/google';
-import { prisma } from '@/prisma';
 
 const resend = new ResendClient(process.env.AUTH_RESEND_KEY);
 
@@ -63,22 +62,5 @@ export default {
       },
     }),
   ],
-  callbacks: {
-    async session({ session, user }) {
-      if (session.user && user) {
-        session.user.id = user.id;
-
-        const profile = await prisma.profile.findUnique({
-          where: { userId: user.id },
-        });
-
-        session.user.name = profile?.username;
-
-        if (profile?.image) {
-          session.user.image = profile.image;
-        }
-      }
-      return session;
-    },
-  },
+ 
 } satisfies NextAuthConfig;

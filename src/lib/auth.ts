@@ -12,6 +12,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     verifyRequest: '/verify',
     newUser: '/onboarding',
   },
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user && user) {
+        session.user.id = user.id;
+
+        const profile = await prisma.profile.findUnique({
+          where: { userId: user.id },
+        });
+
+        session.user.name = profile?.username;
+
+        if (profile?.image) {
+          session.user.image = profile.image;
+        }
+      }
+      return session;
+    },
+  },
 
   ...authConfig,
 });

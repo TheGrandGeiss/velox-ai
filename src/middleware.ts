@@ -1,10 +1,13 @@
-// import { auth } from '@/lib/auth';
+// ✅ GOOD: Imports ONLY the config (No Prisma, No Database)
+import NextAuth from "next-auth";
+import authConfig from "@/lib/auth.config"; // 👈 Ensure this points to the config file
 
-// export default auth((req) => {
-//   if (!req.auth && req.nextUrl.pathname !== '/login') {
-//     const newUrl = new URL('/login', req.nextUrl.origin);
-//     return Response.redirect(newUrl);
-//   }
-// });
+const { auth } = NextAuth(authConfig);
 
-export { auth as middleware } from '@/lib/auth';
+export default auth((req) => {
+  // your middleware logic
+});
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};
