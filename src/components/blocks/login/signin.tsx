@@ -41,7 +41,7 @@ const SignIn = () => {
   async function onSubmit(values: SignInInput) {
     // This triggers the NextAuth "Email" provider (Magic Link)
     // If you use passwords, change this to signIn('credentials', { ... })
-    await signIn('email', { email: values.email, callbackUrl: '/dashboard' });
+    await signIn('email', { email: values.email });
   }
 
   return (

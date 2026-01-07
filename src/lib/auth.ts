@@ -7,7 +7,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'database' },
   pages: {
-    signIn: '/sign-up',
+    signIn: '/signup',
     error: '/api/auth/error',
     verifyRequest: '/verify',
     newUser: '/onboarding',
