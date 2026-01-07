@@ -1,9 +1,7 @@
-'use server';
-
 import { prisma } from '@/prisma';
 import { signIn } from '../auth';
 
-export const createUser = async (email: string) => {
+export const logInuser = async (email: string) => {
   if (!email) {
     throw new Error('Email is required');
   }
@@ -11,8 +9,8 @@ export const createUser = async (email: string) => {
     where: { email },
   });
 
-  if (user) {
-    throw new Error('user already exists');
+  if (!user) {
+    return null;
   }
   const formData = new FormData();
   formData.append('email', email);

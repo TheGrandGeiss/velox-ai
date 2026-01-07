@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { logInuser } from '@/lib/actions/signInAction';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -39,9 +40,7 @@ const SignIn = () => {
   });
 
   async function onSubmit(values: SignInInput) {
-    // This triggers the NextAuth "Email" provider (Magic Link)
-    // If you use passwords, change this to signIn('credentials', { ... })
-    await signIn('email', { email: values.email });
+    logInuser(values.email);
   }
 
   return (
