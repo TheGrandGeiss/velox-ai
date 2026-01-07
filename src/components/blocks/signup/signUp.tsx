@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { Outfit } from 'next/font/google';
 import { FaGoogle, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 
-// Shadcn UI Imports
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,6 +20,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
+import { redirect } from 'next/navigation';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -34,7 +35,13 @@ const SignUp = () => {
   });
 
   async function onSubmit(values: SignUpInput) {
-    await createUser(values.email);
+    const result = await createUser(values.email);
+    if (!result) {
+      toast.error('Failed to create user');
+      return;
+    }
+    toast.success('User created successfully');
+    redirect('/verify');
   }
 
   return (

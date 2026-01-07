@@ -18,4 +18,6 @@ export const createUser = async (email: string) => {
   formData.append('email', email);
 
   await signIn('resend', formData);
+
+  return true;
 };
