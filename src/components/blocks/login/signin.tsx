@@ -40,7 +40,7 @@ const SignIn = () => {
   });
 
   async function onSubmit(values: SignInInput) {
-    logInuser(values.email);
+    await logInuser(values.email);
   }
 
   return (
