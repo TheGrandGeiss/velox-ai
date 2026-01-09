@@ -1,3 +1,5 @@
+'use server';
+
 import { prisma } from '@/prisma';
 import { signIn } from '../auth';
 
@@ -15,5 +17,5 @@ export const logInuser = async (email: string) => {
   const formData = new FormData();
   formData.append('email', email);
 
-  await signIn('resend', formData);
+  await signIn('resend', formData, { redirectTo: '/dashboard' });
 };
