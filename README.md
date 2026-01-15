@@ -1,12 +1,11 @@
-# Chronos ⏳
+# Velox ⏳
 
-![Project Banner](https://via.placeholder.com/1200x600/000000/ffffff?text=AI+Scheduler+Preview)
-> *Replace this with a screenshot of your calendar/scheduler interface.*
+![Project Banner](./src/assets/image.png)
 
 [![Live Demo](https://img.shields.io/badge/Live_Site-Visit_Now-black?style=for-the-badge&logo=vercel)](https://your-scheduler-url.vercel.app)
 [![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](./LICENSE)
 
-**Chronos** is an intelligent scheduling assistant that turns natural language into structured calendar events. Instead of clicking through date pickers and time slots, simply type *"Meeting with John next Tuesday at 2pm for 30 mins"* and let the AI handle the rest.
+**Velox** is an intelligent scheduling assistant that turns natural language into structured calendar events. Instead of clicking through date pickers and time slots, simply type *"Meeting with John next Tuesday at 2pm for 30 mins"* and let the AI handle the rest.
 
 ---
 
