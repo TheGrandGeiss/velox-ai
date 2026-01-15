@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chronos ⏳
 
-## Getting Started
+![Project Banner](https://via.placeholder.com/1200x600/000000/ffffff?text=AI+Scheduler+Preview)
+> *Replace this with a screenshot of your calendar/scheduler interface.*
 
-First, run the development server:
+[![Live Demo](https://img.shields.io/badge/Live_Site-Visit_Now-black?style=for-the-badge&logo=vercel)](https://your-scheduler-url.vercel.app)
+[![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](./LICENSE)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Chronos** is an intelligent scheduling assistant that turns natural language into structured calendar events. Instead of clicking through date pickers and time slots, simply type *"Meeting with John next Tuesday at 2pm for 30 mins"* and let the AI handle the rest.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✨ Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **🗣️ Natural Language Parsing:** Type plans like you're texting a friend; the AI extracts date, time, duration, and participants.
+- **📅 Smart Integration:** Seamlessly syncs events to **Google Calendar** (or your platform of choice).
+- **⚡ Conflict Detection:** Automatically checks for overlapping events before scheduling.
+- **🛡️ Secure Auth:** User sessions managed via **Better Auth (Auth.js v5)**.
+- **🌍 Timezone Aware:** Intelligent handling of cross-border scheduling.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+- **AI/LLM:** [OpenAI API](https://openai.com/) / [Vercel AI SDK](https://sdk.vercel.ai/)
+- **Database:** MongoDB & Prisma
+- **Styling:** Tailwind CSS & Shadcn/ui
+- **Calendar:** React Big Calendar / FullCalendar
+- **Auth:** Auth.js (v5)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🚀 Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Follow these steps to run the scheduler locally.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Prerequisites
+
+- Node.js (v18+)
+- MongoDB URI
+- OpenAI (or other LLM) API Key
+- Google Cloud Console Credentials (if using GCal sync)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone [https://github.com/TheGrandGeiss/your-repo-name.git](https://github.com/TheGrandGeiss/your-repo-name.git)
+   cd your-repo-name
+Install dependenciesBashnpm install
+Set up Environment VariablesCreate a .env file in the root:Code snippet# Database
+DATABASE_URL="mongodb+srv://..."
+
+# Auth
+AUTH_SECRET="your_secret_here"
+
+# AI Provider
+OPENAI_API_KEY="sk-..."
+
+# Calendar Integration (Optional)
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
+
+Run Database Push
+
+Bash npx prisma generate
+
+npx prisma db push
+
+Start the App
+
+Bash npm run dev
+
+📸 Usage
+
+Natural Language Input	                Generated Event
+"Lunch with Sarah tomorrow at noon"	    Title: Lunch with Sarah
+
+                                        Time: Tomorrow, 12:00 PM - 1:00 PM
+
+
+We welcome contributions! Please see CONTRIBUTING.md for details on how to submit pull requests.
+
+📬 ContactEbenebe Emmanuel Chidera GitHub: @TheGrandGeiss
