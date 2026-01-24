@@ -62,7 +62,12 @@ export async function getUserProfile() {
   };
 }
 
-export async function updateProfile(values: userPreferenceType) {
+// 1. Extend the type to include the image (which might not be in your Zod schema)
+type ProfilePayload = userPreferenceType & {
+  image?: string | null;
+};
+
+export async function updateProfile(values: ProfilePayload) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -74,22 +79,37 @@ export async function updateProfile(values: userPreferenceType) {
   }
 
   try {
-    await prisma.profile.update({
+    await prisma.profile.upsert({
       where: {
         userId: session.user.id,
       },
-      data: {
+      update: {
         username: values.username,
         dob: values.dob,
         mainGoal: values.mainGoal,
-        // ✅ Passed directly as String since your DB expects String
         maxSessionLength: values.maxSessionLength,
         wakeUpTime: values.wakeUpTime,
         sleepTime: values.sleepTime,
         weekendPreference: values.weekendPreference,
+        // ✅ Update image
+        image: values.image,
+      },
+      create: {
+        userId: session.user.id,
+        username: values.username,
+        dob: values.dob,
+        mainGoal: values.mainGoal,
+        maxSessionLength: values.maxSessionLength,
+        wakeUpTime: values.wakeUpTime,
+        sleepTime: values.sleepTime,
+        weekendPreference: values.weekendPreference,
+        // ✅ Save image on creation
+        image: values.image,
       },
     });
 
+    // Revalidate both the dashboard and the specific profile page to show new image immediately
+    revalidatePath('/dashboard');
     revalidatePath('/dashboard/profile');
 
     return { success: true };

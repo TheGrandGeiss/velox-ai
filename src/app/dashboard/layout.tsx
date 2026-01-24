@@ -15,7 +15,7 @@ import { getOnboardingData } from '@/lib/actions/getOnboardingData';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
-const Layout = async ({ children }: { children: React.ReactNode }) => {
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
@@ -25,6 +25,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
         <div className='h-full p-6 overflow-y-auto custom-scrollbar'>
           <Sidebar />
         </div>
+        npm
       </div>
 
       {/* Main Content Wrapper */}

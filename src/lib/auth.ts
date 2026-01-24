@@ -33,6 +33,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'google') {
+        // If user is already logged in or exists, ensure emails match
+        if (user.email && profile?.email && user.email !== profile.email) {
+          return false; // Blocks the sign in
+        }
+      }
+      return true;
+    },
     async authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnboarded = auth?.user.isOnboarded;
