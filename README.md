@@ -2,7 +2,7 @@
 
 ![Project Banner](./src/assets/image.png)
 
-[![Live Demo](https://img.shields.io/badge/Live_Site-Visit_Now-black?style=for-the-badge&logo=vercel)](https://your-scheduler-url.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live_Site-Visit_Now-black?style=for-the-badge&logo=vercel)](https://velox-ai-psi.vercel.app)
 [![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](./LICENSE)
 
 **Velox** is an intelligent scheduling assistant that turns natural language into structured calendar events. Instead of clicking through date pickers and time slots, simply type *"Meeting with John next Tuesday at 2pm for 30 mins"* and let the AI handle the rest.
@@ -60,25 +60,7 @@ OPENAI_API_KEY="sk-..."
 # Calendar Integration (Optional)
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
-
-Run Database Push
-
-Bash npx prisma generate
-
+Run Database PushBashnpx prisma generate
 npx prisma db push
-
-Start the App
-
-Bash npm run dev
-
-📸 Usage
-
-Natural Language Input	                Generated Event
-"Lunch with Sarah tomorrow at noon"	    Title: Lunch with Sarah
-
-                                        Time: Tomorrow, 12:00 PM - 1:00 PM
-
-
-We welcome contributions! Please see CONTRIBUTING.md for details on how to submit pull requests.
-
-📬 ContactEbenebe Emmanuel Chidera GitHub: @TheGrandGeiss
+Start the AppBashnpm run dev
+📸 UsageNatural Language InputGenerated Event"Lunch with Sarah tomorrow at noon"Title: Lunch with SarahTime: Tomorrow, 12:00 PM - 1:00 PM🤝 ContributingWe welcome contributions! Please see CONTRIBUTING.md for details on how to submit pull requests.📬 ContactEbenebe Emmanuel Chidera GitHub: @TheGrandGeiss

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     if (!content) {
       return NextResponse.json(
         { error: 'No content provided' },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const date = new Date();
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     if (!userProfile) {
       return NextResponse.json(
         { error: 'error found user unauthorized' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -309,74 +309,76 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
       },
     });
 
-    await prisma.account.findFirst({
+    const account = await prisma.account.findFirst({
       where: {
         userId: session?.user?.id,
       },
     });
 
-    // Initialize Google Calendar client once (outside the loop)
-    let calendar = null;
-    try {
-      calendar = await googleClient(token);
-    } catch (googleClientError) {
-      console.log(
-        'Google Client initialization failed (Non-critical):',
-        googleClientError
-      );
-      // Continue without Google Calendar sync
-    }
-
-    // Process each task independently
-    for (const task of tasksArray) {
+    if (account) {
+      // Initialize Google Calendar client once (outside the loop)
+      let calendar = null;
       try {
-        await prisma.event.create({
-          data: {
-            title: task.title,
-            description: task.description,
-            start: new Date(task.start),
-            end: task.end ? new Date(task.end) : null,
-            allDay: task.allDay || false,
-            backgroundColor: task.backgroundColor,
-            borderColor: task.borderColor,
-            textColor: task.textColor,
-            category: task.category,
-            profileId: userProfile.id,
-            messageId: message.id,
-          },
-        });
-
-        // 2. Send THIS SPECIFIC event to Google (if connected) - wrapped in try-catch per task
-        if (calendar) {
-          try {
-            await calendar.events.insert({
-              calendarId: 'primary',
-              requestBody: {
-                summary: task.title,
-                description: task.description,
-                start: { dateTime: new Date(task.start).toISOString() },
-                end: {
-                  dateTime: task.end
-                    ? new Date(task.end).toISOString()
-                    : new Date(
-                        new Date(task.start).getTime() + 60 * 60 * 1000
-                      ).toISOString(),
-                },
-              },
-            });
-          } catch (googleEventError) {
-            console.warn(
-              `Google Calendar sync failed for task "${task.title}" (Non-critical):`,
-              googleEventError
-            );
-            // Continue to next task - DB save already succeeded
-          }
-        }
-      } catch (prismaError) {
-        console.error(
-          `Failed to create event "${task.title}" in database:`,
-          prismaError
+        calendar = await googleClient(token);
+      } catch (googleClientError) {
+        console.log(
+          'Google Client initialization failed (Non-critical):',
+          googleClientError,
         );
+        // Continue without Google Calendar sync
+      }
+
+      // Process each task independently
+      for (const task of tasksArray) {
+        try {
+          await prisma.event.create({
+            data: {
+              title: task.title,
+              description: task.description,
+              start: new Date(task.start),
+              end: task.end ? new Date(task.end) : null,
+              allDay: task.allDay || false,
+              backgroundColor: task.backgroundColor,
+              borderColor: task.borderColor,
+              textColor: task.textColor,
+              category: task.category,
+              profileId: userProfile.id,
+              messageId: message.id,
+            },
+          });
+
+          // 2. Send THIS SPECIFIC event to Google (if connected) - wrapped in try-catch per task
+          if (calendar) {
+            try {
+              await calendar.events.insert({
+                calendarId: 'primary',
+                requestBody: {
+                  summary: task.title,
+                  description: task.description,
+                  start: { dateTime: new Date(task.start).toISOString() },
+                  end: {
+                    dateTime: task.end
+                      ? new Date(task.end).toISOString()
+                      : new Date(
+                          new Date(task.start).getTime() + 60 * 60 * 1000,
+                        ).toISOString(),
+                  },
+                },
+              });
+            } catch (googleEventError) {
+              console.warn(
+                `Google Calendar sync failed for task "${task.title}" (Non-critical):`,
+                googleEventError,
+              );
+              // Continue to next task - DB save already succeeded
+            }
+          }
+        } catch (prismaError) {
+          console.error(
+            `Failed to create event "${task.title}" in database:`,
+            prismaError,
+          );
+        }
       }
     }
 
@@ -390,7 +392,7 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
     if (error instanceof SyntaxError) {
       return NextResponse.json(
         { error: 'Invalid JSON returned from AI' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -400,7 +402,7 @@ Return a perfectly formatted JSON array that can be directly used by FullCalenda
 
     return NextResponse.json(
       { error: 'Something went wrong' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -17,5 +17,5 @@ export const logInuser = async (email: string) => {
   const formData = new FormData();
   formData.append('email', email);
 
-  await signIn('resend', formData, { redirectTo: '/dashboard' });
+  await signIn('nodemailer', formData, { redirectTo: '/dashboard' });
 };

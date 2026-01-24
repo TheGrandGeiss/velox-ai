@@ -162,7 +162,7 @@ const Dashboard = () => {
       if (response.ok) {
         // Remove the event from the >calendar
         setEvents((prevEvents) =>
-          prevEvents.filter((event) => event.id !== eventDetails.id)
+          prevEvents.filter((event) => event.id !== eventDetails.id),
         );
 
         // Close the dialog
@@ -171,13 +171,13 @@ const Dashboard = () => {
       } else {
         const data = await response.json();
         throw new Error(
-          `Failed to delete event: ${data.error || 'Unknown error'}`
+          `Failed to delete event: ${data.error || 'Unknown error'}`,
         );
       }
     } catch (error) {
       console.error('Error deleting event:', error);
       alert(
-        `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }
@@ -211,8 +211,8 @@ const Dashboard = () => {
               // Update colors if category changed
               category: updatedEvent.category,
             }
-          : event
-      )
+          : event,
+      ),
     );
 
     // Update the eventDetails state if it's the same event

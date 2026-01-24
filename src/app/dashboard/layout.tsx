@@ -11,20 +11,16 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Outfit } from 'next/font/google';
-import { SessionProvider } from '@/components/providers/SessionProvider';
+import { getOnboardingData } from '@/lib/actions/getOnboardingData';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = async ({ children }: { children: React.ReactNode }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
     <div
       className={`flex w-full bg-[#0d0e12] ${outfit.className} min-h-screen`}>
-      {/* FIX 1: CHANGED 'md:block' TO 'lg:block'
-         This ensures the sidebar is HIDDEN on Tablets (iPad Portrait).
-         It only appears on Laptops/Desktops (1024px+).
-      */}
       <div className='hidden lg:block w-72 border-r border-white/5 bg-[#0d0e12] shrink-0 sticky top-0 h-screen'>
         <div className='h-full p-6 overflow-y-auto custom-scrollbar'>
           <Sidebar />
