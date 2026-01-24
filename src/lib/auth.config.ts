@@ -14,6 +14,7 @@ export default {
           scope:
             'openid profile email https://www.googleapis.com/auth/calendar',
         }).toString(),
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
 } satisfies NextAuthConfig;
