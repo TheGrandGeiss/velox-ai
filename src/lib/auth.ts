@@ -1,13 +1,12 @@
 import NextAuth from 'next-auth';
 import authConfig from './auth.config';
 import { PrismaAdapter } from '@auth/prisma-adapter';
-import { PrismaClient } from '@prisma/client';
-import nodemailer from 'nodemailer';
 
-const prisma = new PrismaClient();
+import nodemailer from 'nodemailer';
+import { prisma } from '@/prisma';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma as any),
   session: {
     strategy: 'database',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -30,9 +29,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/signup',
     error: '/api/auth/error',
     verifyRequest: '/verify',
+    newUser: '/onboarding',
   },
 
   callbacks: {
+    async authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnboarded = auth?.user.isOnboarded;
+      const { pathname } = nextUrl;
+
+      // 1. Allow access to public assets and Auth API routes
+      if (pathname.startsWith('/api/auth') || pathname.startsWith('/public')) {
+        return true;
+      }
+
+      // 2. LOGIC: If the user is logged in
+      if (isLoggedIn) {
+        // A. If they haven't finished onboarding, force them to stay on /onboarding
+        if (!isOnboarded && pathname !== '/onboarding') {
+          return Response.redirect(new URL('/onboarding', nextUrl));
+        }
+
+        // B. If they ARE finished, prevent them from going back to /onboarding
+        if (isOnboarded && pathname === '/onboarding') {
+          return Response.redirect(new URL('/dashboard', nextUrl));
+        }
+
+        return true; // Let them through to any other page
+      }
+
+      // 3. If they are NOT logged in, return 'false'
+      // (This automatically redirects them to your 'pages.signIn' URL)
+      return false;
+    },
+
     async session({ session, user }) {
       if (session.user && user) {
         session.user.id = user.id;

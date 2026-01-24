@@ -19,6 +19,6 @@ export const createUser = async (email: string) => {
   // signIn with redirect option - this will send the email and redirect to verify page
   await signIn('nodemailer', {
     email,
-    redirectTo: '/dashboard', // Where to go after clicking the magic link
+    redirectTo: '/onboarding', // Where to go after clicking the magic link
   });
 };
