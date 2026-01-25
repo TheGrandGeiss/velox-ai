@@ -335,8 +335,6 @@ export default function ProfilePageClient({
                                       date < new Date('1900-01-01')
                                     }
                                     captionLayout='dropdown'
-                                    fromYear={1950}
-                                    toYear={new Date().getFullYear()}
                                     className='bg-[#1c1c21] text-white'
                                   />
                                 </PopoverContent>
