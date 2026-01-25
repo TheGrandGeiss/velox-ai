@@ -19,7 +19,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { logInuser } from '@/lib/actions/signInAction';
+import { loginWithEmail } from '@/lib/actions/signInAction';
+import { toast } from 'sonner';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -40,7 +41,11 @@ const SignIn = () => {
   });
 
   async function onSubmit(values: SignInInput) {
-    await logInuser(values.email);
+    const login = await loginWithEmail(values.email);
+
+    if (login?.error) {
+      toast('No user found with this email');
+    }
   }
 
   return (
