@@ -44,7 +44,7 @@ const SignIn = () => {
     const login = await loginWithEmail(values.email);
 
     if (login?.error) {
-      toast('No user found with this email');
+      toast.error('No user found with this email');
     }
   }
 
