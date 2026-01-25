@@ -13,23 +13,27 @@ export async function createProfile(values: userPreferenceType) {
     redirect('/login');
   }
 
+  await prisma.profile.create({
+    data: {
+      username: values.username,
+      dob: values.dob,
+      mainGoal: values.mainGoal,
+      maxSessionLength: values.maxSessionLength,
+      wakeUpTime: values.wakeUpTime,
+      sleepTime: values.sleepTime,
+      weekendPreference: values.weekendPreference,
+      // Connect the existing User to this new Profile
+      user: {
+        connect: { id: session.user.id },
+      },
+    },
+  });
   // 1. Create the Profile and Update the User in a single transaction
   // This ensures the flag and profile are both saved or neither is.
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
       isOnboarded: true, // Mark them as done with onboarding
-      profile: {
-        create: {
-          username: values.username,
-          dob: values.dob,
-          mainGoal: values.mainGoal,
-          maxSessionLength: values.maxSessionLength,
-          wakeUpTime: values.wakeUpTime,
-          sleepTime: values.sleepTime,
-          weekendPreference: values.weekendPreference,
-        },
-      },
     },
   });
 
