@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { FaGoogle, FaApple, FaMicrosoft } from 'react-icons/fa';
-import { WeekendPreference } from '@prisma/client';
+import { WeekendPreference } from '@/generated/client';
 import { Button } from '@/components/ui/button';
 import {
   Form,

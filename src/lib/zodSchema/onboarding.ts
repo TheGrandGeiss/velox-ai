@@ -1,5 +1,5 @@
 import z from 'zod';
-import { WeekendPreference } from '@prisma/client';
+import { WeekendPreference } from '@/generated/client';
 
 export const sessionLength = [
   '15',
