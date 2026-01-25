@@ -17,7 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
 import { UserAvatarField } from './userAvatarField';
-import { getUpcomingEvents } from '@/lib/actions/getUpcomingEvents'; // Check this path
+import { getUpcomingEvents } from '@/lib/actions/getUpcomingEvents';
 
 interface UpcomingEventsType {
   id: string;
@@ -34,11 +34,8 @@ const Sidebar = ({ className }: { className?: string }) => {
     UpcomingEventsType[] | null
   >([]);
 
-  // --- FETCHING LOGIC RESTORED ---
   useEffect(() => {
     fetchUpcoming();
-
-    // Auto-refresh every 60 seconds (keeps "Upcoming" accurate)
     const interval = setInterval(fetchUpcoming, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -52,16 +49,25 @@ const Sidebar = ({ className }: { className?: string }) => {
         return;
       }
 
-      // Format and slice to ensure max 3 items
+      // 1. Filter out Breaks first
+      // 2. Map correct fields (fix isCompleted)
+      // 3. Slice top 3
       const formattedEvents = rawEvents
-        .slice(0, 3) // <--- Safety Limit: Only show top 3
+        .filter((event: any) => {
+          // Check if category or title indicates a break
+          const category = event.category?.toLowerCase() || '';
+          const title = event.title?.toLowerCase() || '';
+          return category !== 'break' && title !== 'break';
+        })
         .map((event: any) => ({
           id: event.id,
           title: event.title,
-          isCompleted: !!event.isComplete, // Ensure boolean
+          // ✅ FIX: Check both naming conventions to ensure state works
+          isCompleted: !!(event.isCompleted || event.isComplete),
           date: new Date(event.start),
           color: event.backgroundColor || '#b591ef',
-        }));
+        }))
+        .slice(0, 3); // Slice AFTER filtering to keep the list full
 
       setUpcomingEvents(formattedEvents);
     } catch (error) {
@@ -86,7 +92,6 @@ const Sidebar = ({ className }: { className?: string }) => {
   ];
 
   return (
-    // "Dumb" Container - lets Layout handle width/position
     <aside className={cn('flex flex-col h-full w-full space-y-4', className)}>
       {/* 1. LINKS */}
       <nav className='space-y-2 py-2'>
@@ -100,7 +105,7 @@ const Sidebar = ({ className }: { className?: string }) => {
                 'group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm',
                 isActive
                   ? 'bg-[#b591ef]/10 text-[#b591ef] shadow-[0_0_20px_rgba(181,145,239,0.1)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5',
               )}>
               <item.icon
                 size={20}
@@ -108,7 +113,7 @@ const Sidebar = ({ className }: { className?: string }) => {
                   'transition-colors',
                   isActive
                     ? 'text-[#b591ef]'
-                    : 'text-gray-500 group-hover:text-white'
+                    : 'text-gray-500 group-hover:text-white',
                 )}
               />
               <span>{item.name}</span>
@@ -117,7 +122,7 @@ const Sidebar = ({ className }: { className?: string }) => {
         })}
       </nav>
 
-      {/* 2. EVENTS WIDGET (The "Mini List") */}
+      {/* 2. EVENTS WIDGET */}
       <div className='flex-1 overflow-y-auto px-1 py-4 custom-scrollbar'>
         <div className='flex items-center justify-between mb-4 px-3'>
           <h3 className='text-xs font-bold text-gray-500 uppercase tracking-widest'>
@@ -136,27 +141,30 @@ const Sidebar = ({ className }: { className?: string }) => {
               key={event.id}
               className={cn(
                 'group flex items-start gap-3 p-3 rounded-2xl border border-transparent transition-all hover:bg-white/5',
-                event.isCompleted ? 'opacity-50' : 'bg-[#1c1c21] border-white/5'
+                // Dim completed events visually
+                event.isCompleted
+                  ? 'opacity-50 bg-white/5'
+                  : 'bg-[#1c1c21] border-white/5',
               )}>
-              {/* Checkbox Visual Only */}
-              <button className='mt-0.5 text-gray-500 hover:text-[#b591ef] transition-colors cursor-default'>
+              {/* Checkbox Icon */}
+              <div className='mt-0.5 text-gray-500'>
                 {event.isCompleted ? (
                   <CheckCircle2
                     size={16}
-                    className='text-gray-500'
+                    className='text-[#b591ef]' // Highlight checked state color
                   />
                 ) : (
                   <Circle size={16} />
                 )}
-              </button>
+              </div>
 
               <div className='flex-1 min-w-0'>
                 <p
                   className={cn(
                     'text-sm font-medium truncate leading-tight',
                     event.isCompleted
-                      ? 'text-gray-500 line-through'
-                      : 'text-gray-200'
+                      ? 'text-gray-500 line-through decoration-gray-600'
+                      : 'text-gray-200',
                   )}>
                   {event.title}
                 </p>
@@ -169,7 +177,6 @@ const Sidebar = ({ className }: { className?: string }) => {
                     {event.date.toLocaleTimeString([], {
                       hour: 'numeric',
                       minute: '2-digit',
-                      // hour12: true (default for en-US locale)
                     })}
                   </span>
                 </div>
@@ -211,7 +218,9 @@ const Sidebar = ({ className }: { className?: string }) => {
           onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
           className={cn(
             'w-full flex items-center justify-between p-2 rounded-2xl transition-all border border-transparent',
-            isUserMenuOpen ? 'bg-[#1c1c21] border-white/10' : 'hover:bg-white/5'
+            isUserMenuOpen
+              ? 'bg-[#1c1c21] border-white/10'
+              : 'hover:bg-white/5',
           )}>
           <div className='flex items-center gap-3 overflow-hidden pointer-events-none'>
             <UserAvatarField />
@@ -220,7 +229,7 @@ const Sidebar = ({ className }: { className?: string }) => {
             size={16}
             className={cn(
               'text-gray-500 transition-transform duration-200',
-              isUserMenuOpen && 'rotate-180'
+              isUserMenuOpen && 'rotate-180',
             )}
           />
         </button>
