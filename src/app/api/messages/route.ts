@@ -3,6 +3,28 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+export type FormattedTask = {
+  title: string;
+  description: string | null;
+  start: string;
+  end?: string;
+  // 👇 Allow nulls here to match your DB
+  category: string | null;
+  backgroundColor: string | null;
+  borderColor: string | null;
+  textColor: string | null;
+  createdAt: string;
+};
+
+export type FormattedMessage = {
+  id: string;
+  // 👇 Using the generic string allows strictly typed Enums to pass
+  role: string;
+  content: string;
+  createdAt: Date;
+  tasks: FormattedTask[];
+};
+
 export async function GET() {
   try {
     const session = await auth();
@@ -22,7 +44,7 @@ export async function GET() {
     });
 
     // Format messages to include tasks
-    const formattedMessages = chat.map((message) => ({
+    const formattedMessages: FormattedMessage[] = chat.map((message) => ({
       id: message.id,
       role: message.role,
       content: message.content,
@@ -45,7 +67,7 @@ export async function GET() {
       {
         data: formattedMessages,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error('Error fetching messages:', error);
@@ -53,7 +75,7 @@ export async function GET() {
       {
         error: 'Internal server error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -70,7 +92,7 @@ export async function POST(req: NextRequest) {
     if (!req) {
       return NextResponse.json(
         { error: 'No request provided' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -83,7 +105,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'Missing required fields: role and content are required',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -92,7 +114,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'Invalid role. Must be either "user" or "ai"',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -101,7 +123,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'Content must be a non-empty string',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -116,7 +138,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'User profile not found',
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -137,7 +159,7 @@ export async function POST(req: NextRequest) {
         success: true,
         data: createdMessage,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error('Error creating message:', error);
@@ -145,7 +167,7 @@ export async function POST(req: NextRequest) {
       {
         error: 'Internal server error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
