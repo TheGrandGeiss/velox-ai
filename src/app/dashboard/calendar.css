@@ -48,8 +48,8 @@ body {
 
 /* The actual time slots (horizontal lines) */
 .fc-timegrid-slot {
-  height: 3.5em !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important; /* Extremely subtle line */
+  height: 5em !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
 }
 
 /* The vertical axis (time labels) */
@@ -63,6 +63,7 @@ body {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  padding-right: 8px; /* Add some spacing from the line */
 }
 
 /* ------------------------------------------------ */
@@ -155,33 +156,56 @@ body {
 
 .fc-v-event {
   border: none !important;
-  border-radius: 12px !important;
+  /* Reduced radius slightly (12px -> 8px) to save corner space on small events */
+  border-radius: 8px !important;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 2px;
+  /* MAGIC 2: Removed outer padding so the background color fills the slot completely */
+  padding: 0 !important;
+  transition: transform 0.1s ease; /* Subtle interaction feel */
+}
+
+.fc-v-event:hover {
+  transform: scale(1.01); /* Tiny pop on hover */
+  z-index: 5;
 }
 
 .fc-event-main {
-  color: #1a1423; /* Dark text for pastel backgrounds */
-  padding: 8px;
+  color: #1a1423;
+  /* MAGIC 3: Optimized inner padding. 
+     Horizontal (8px) ensures text doesn't hit edges.
+     Vertical (4px) ensures short events don't cut off text. */
+  padding: 4px 10px !important;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  height: 100%; /* Force content to fill the card */
+  gap: 2px; /* Small gap between time and title */
 }
 
 .fc-event-time {
-  font-size: 0.75rem;
+  font-size: 0.7rem; /* Slightly smaller to prioritize Title */
   font-weight: 600;
-  opacity: 0.7;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .fc-event-title {
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.2;
+  /* Ensure text wraps nicely but cuts off cleanly if still too long */
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2; /* Limits title to 2 lines max */
+  -webkit-box-orient: vertical;
 }
-
 /* ------------------------------------------------ */
 /* 7. SCROLLBAR HIDING                              */
 /* ------------------------------------------------ */
