@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { FaGoogle, FaApple, FaMicrosoft } from 'react-icons/fa';
-import { WeekendPreference } from '@/generated/client';
+import { WeekendPreference } from '@prisma/client'; // Changed from generated/client for safety, revert if needed
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -61,6 +61,8 @@ import {
   connectGoogle,
   disconnectGoogle,
 } from '@/lib/actions/connectionAction';
+// 👇 IMPORT THE NEW COMPONENT
+import DeleteAccountButton from './deleteaccountbutton';
 
 // Helper to convert file to base64
 const convertToBase64 = (file: File): Promise<string> => {
@@ -335,6 +337,8 @@ export default function ProfilePageClient({
                                       date < new Date('1900-01-01')
                                     }
                                     captionLayout='dropdown'
+                                    fromYear={1950}
+                                    toYear={new Date().getFullYear()}
                                     className='bg-[#1c1c21] text-white'
                                   />
                                 </PopoverContent>
@@ -634,11 +638,9 @@ export default function ProfilePageClient({
                       Permanently delete your account and all of your content.
                       This action cannot be undone.
                     </p>
-                    <Button
-                      variant='destructive'
-                      className='bg-red-900/50 hover:bg-red-900 text-red-200'>
-                      Delete Account
-                    </Button>
+
+                    {/* 👇 NEW DELETE BUTTON COMPONENT */}
+                    <DeleteAccountButton />
                   </CardContent>
                 </Card>
               </div>

@@ -1,10 +1,14 @@
 'use server';
 import { prisma } from '@/prisma';
 
-export async function getValidAccessToken(userId: string) {
+export async function getValidAccessToken(
+  userId: string | null,
+): Promise<string | null> {
   if (!userId) {
-    throw new Error('no user');
+    return null;
   }
+
+  // 1. Try to find the Google Account
   const account = await prisma.account.findFirst({
     where: {
       userId,
@@ -12,17 +16,22 @@ export async function getValidAccessToken(userId: string) {
     },
   });
 
-  if (!account) throw new Error('No Google account linked');
-  if (!account.refresh_token) throw new Error('No refresh token available');
+  // ✅ If no account, just return null (don't crash)
+  if (!account) return null;
 
-  // Check if expired (with 1 minute buffer)
+  // ✅ If no refresh token, we can't maintain the connection. Return null.
+  if (!account.refresh_token) return null;
+
+  // 2. Check if expired (with 1 minute buffer)
   const expiresAtMs = (account.expires_at ?? 0) * 1000;
   const isExpired = Date.now() >= expiresAtMs - 60000;
 
+  // If token is still valid, return it immediately
   if (!isExpired && account.access_token) {
     return account.access_token;
   }
 
+  // 3. Attempt Refresh
   try {
     const response = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -40,26 +49,17 @@ export async function getValidAccessToken(userId: string) {
     const tokens = await response.json();
 
     if (!response.ok) {
-      // 🚨 CHECK SPECIFIC ERRORS HERE
-      if (tokens.error === 'invalid_grant') {
-        console.error(
-          '❌ Refresh Token Invalid (Revoked or Expired). User must re-login.'
-        );
-        // Optional: You could delete the invalid token from DB here to force a clean slate
-        // await prisma.account.update({ where: { id: account.id }, data: { refresh_token: null } });
-        throw new Error('Refresh token expired');
-      }
+      // Log it, but don't throw. Just return null so the app continues without sync.
+      console.warn('Google Token Refresh failed (Non-critical):', tokens.error);
 
-      if (tokens.error === 'invalid_client') {
-        console.error('❌ Wrong Client ID or Secret in .env file');
-        throw new Error('Configuration error');
-      }
-
-      throw tokens; // Throw unknown errors
+      // Optional: If invalid_grant, it means user revoked access.
+      // You might want to delete the account connection here in the future.
+      return null;
     }
 
     const newExpiresAt = Math.floor(Date.now() / 1000 + tokens.expires_in);
 
+    // 4. Update Database with new token
     await prisma.account.update({
       where: {
         id: account.id,
@@ -67,15 +67,14 @@ export async function getValidAccessToken(userId: string) {
       data: {
         access_token: tokens.access_token,
         expires_at: newExpiresAt,
-        // Google might verify a new refresh token, but often it's undefined in a refresh response
         refresh_token: tokens.refresh_token ?? account.refresh_token,
       },
     });
 
     return tokens.access_token;
   } catch (error) {
-    console.error('Failed to refresh token:', error);
-    // Returning null or throwing specific error helps the frontend know to redirect to login
-    throw new Error('Failed to refresh access token');
+    console.error('Failed to refresh token (System Error):', error);
+    // Return null so the schedule generation still happens locally
+    return null;
   }
 }

@@ -31,6 +31,7 @@ import {
 import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 import { useSession } from 'next-auth/react';
 import { CalendarEvent } from './dashboard';
+import { toast } from 'sonner';
 
 export const categoryTypes = [
   {
@@ -94,7 +95,6 @@ const CreateOnSelect = ({
     category?: CategoryType;
   } | null;
 }) => {
-  // Helper function to convert ISO string to time input format (HH:mm)
   const isoToTimeInput = (isoString: string): string => {
     if (!isoString) return '';
     try {
@@ -109,7 +109,6 @@ const CreateOnSelect = ({
   };
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper function to convert time input (HH:mm) back to ISO string
   const timeInputToIso = (timeValue: string, baseIsoString: string): string => {
     const [hours, minutes] = timeValue.split(':').map(Number);
     const baseDate = new Date(baseIsoString);
@@ -167,7 +166,7 @@ const CreateOnSelect = ({
       }
     } catch (error) {
       console.error('Creation failed:', error);
-      alert('Failed to create event. Please try again.');
+      toast.error('Failed to create event. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -177,7 +176,6 @@ const CreateOnSelect = ({
     defaultValues: {
       eventTitle: '',
       eventDescription: '',
-
       start: '',
       end: '',
       category: 'Break',
@@ -218,7 +216,6 @@ const CreateOnSelect = ({
     }
   };
 
-  // --- STYLES ---
   const inputStyles =
     'bg-[#27272a] border-white/10 text-white placeholder:text-gray-500 focus-visible:ring-[#b591ef] focus-visible:border-[#b591ef] rounded-xl py-6 text-base shadow-sm transition-all duration-200';
   const labelStyles = 'text-sm font-medium text-gray-400 mb-2 block';
@@ -229,9 +226,10 @@ const CreateOnSelect = ({
       onOpenChange={setOpen}>
       <DialogContent
         showCloseButton={false}
-        className='sm:max-w-[600px] bg-[#1c1c21] border border-white/10 text-white p-0 gap-0 rounded-3xl overflow-hidden shadow-2xl'>
-        {/* Header */}
-        <div className='flex justify-between items-center p-6 border-b border-white/10 bg-[#1c1c21]'>
+        // ✅ FIX IS HERE: Added max-h-[90vh], flex, and flex-col to parent
+        className='sm:max-w-[600px] max-h-[90vh] flex flex-col bg-[#1c1c21] border border-white/10 text-white p-0 gap-0 rounded-3xl overflow-hidden shadow-2xl'>
+        {/* Header - Fixed */}
+        <div className='flex justify-between items-center p-6 border-b border-white/10 bg-[#1c1c21] flex-shrink-0'>
           <div className='flex items-center gap-3'>
             <div className='h-10 w-10 rounded-full bg-[#b591ef]/10 flex items-center justify-center border border-[#b591ef]/20'>
               <CalendarIcon className='w-5 h-5 text-[#b591ef]' />
@@ -245,7 +243,9 @@ const CreateOnSelect = ({
           </DialogClose>
         </div>
 
-        <div className='p-6'>
+        {/* Content - Scrollable */}
+        {/* ✅ FIX IS HERE: Added overflow-y-auto to allow scrolling inside the modal */}
+        <div className='p-6 overflow-y-auto custom-scrollbar flex-1'>
           <form
             id='event-creation-modal'
             onSubmit={async (e) => {
@@ -321,7 +321,7 @@ const CreateOnSelect = ({
                                 new Date().toISOString();
                               const newIsoString = timeInputToIso(
                                 newTime,
-                                baseIsoString
+                                baseIsoString,
                               );
                               field.handleChange(newIsoString);
                             }
@@ -365,7 +365,7 @@ const CreateOnSelect = ({
                                 new Date().toISOString();
                               const newIsoString = timeInputToIso(
                                 newTime,
-                                baseIsoString
+                                baseIsoString,
                               );
                               field.handleChange(newIsoString);
                             }
@@ -402,7 +402,7 @@ const CreateOnSelect = ({
                           className={`${inputStyles} border-white/10 text-white`}>
                           <SelectValue placeholder='Select a category' />
                         </SelectTrigger>
-                        <SelectContent className='bg-[#1c1c21] border border-white/10 text-white shadow-xl'>
+                        <SelectContent className='bg-[#1c1c21] border border-white/10 text-white shadow-xl max-h-[200px]'>
                           {categoryTypes.map((category) => (
                             <SelectItem
                               key={category.name}
@@ -451,8 +451,8 @@ const CreateOnSelect = ({
           </form>
         </div>
 
-        {/* Footer */}
-        <DialogFooter className='p-6 bg-[#151519] border-t border-white/5 flex gap-3 sm:justify-between'>
+        {/* Footer - Fixed */}
+        <DialogFooter className='p-6 bg-[#151519] border-t border-white/5 flex gap-3 sm:justify-between flex-shrink-0'>
           <Button
             type='button'
             variant='ghost'

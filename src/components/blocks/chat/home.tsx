@@ -11,6 +11,7 @@ import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 import { cn } from '@/lib/utils';
 import { Outfit } from 'next/font/google';
 import { Session } from 'next-auth';
+import { toast } from 'sonner';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -32,7 +33,7 @@ const ScheduleHome = ({ session }: { session: Session }) => {
       try {
         setLoading(true);
 
-        // fetching all messages
+        // 1. Fetch Messages
         const response = await fetch('/api/messages', {
           method: 'GET',
           headers: {
@@ -43,16 +44,31 @@ const ScheduleHome = ({ session }: { session: Session }) => {
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(
-            errorData.error || `HTTP error! status: ${response.status}`
+            errorData.error || `HTTP error! status: ${response.status}`,
           );
         }
 
         const data = await response.json();
 
+        // 2. Client-side Token Refresh Logic
+        // 👇 FIX: Declare the variable here with the correct type
+        let accessToken: string | null = null;
+
+        if (session?.user?.id) {
+          try {
+            // Retrieve fresh token on client
+            accessToken = await getValidAccessToken(session.user.id);
+          } catch (tokenError) {
+            console.warn('Failed to get access token for tasks:', tokenError);
+          }
+        }
+
+        // 3. Fetch Tasks with Token Header
         const taskResponse = await fetch('/api/tasks', {
           method: 'GET',
           headers: {
             'content-type': 'application/json',
+            'X-Google-Token': accessToken || '', // ✅ Works perfectly now
           },
         });
 
@@ -70,8 +86,8 @@ const ScheduleHome = ({ session }: { session: Session }) => {
           console.warn('No data in response:', data, taskData);
         }
       } catch (error) {
-        alert(
-          error instanceof Error ? error.message : 'Failed to fetch messages'
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to fetch messages',
         );
       } finally {
         setLoading(false);
@@ -79,8 +95,7 @@ const ScheduleHome = ({ session }: { session: Session }) => {
     };
 
     fetchMessages();
-  }, []);
-
+  }, [session?.user?.id]);
   const onSubmit = async (message: Message) => {
     try {
       setLoading(true);
@@ -88,6 +103,7 @@ const ScheduleHome = ({ session }: { session: Session }) => {
         redirect('signin');
       }
 
+      // ✅ Client-side Token Refresh Logic
       const accessToken = await getValidAccessToken(session.user?.id);
 
       if (!message || !message.content?.trim()) {
@@ -108,7 +124,7 @@ const ScheduleHome = ({ session }: { session: Session }) => {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error || `HTTP error! status: ${response.status}`
+          errorData.error || `HTTP error! status: ${response.status}`,
         );
       }
 
@@ -124,7 +140,7 @@ const ScheduleHome = ({ session }: { session: Session }) => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'X-Google-Token': accessToken,
+          'X-Google-Token': accessToken || '', // ✅ Passed here as well
         },
         body: JSON.stringify({
           content: message.content,
@@ -134,7 +150,7 @@ const ScheduleHome = ({ session }: { session: Session }) => {
       if (!scheduleResponse.ok) {
         const errorData = await scheduleResponse.json();
         throw new Error(
-          errorData.error || `HTTP error! status: ${scheduleResponse.status}`
+          errorData.error || `HTTP error! status: ${scheduleResponse.status}`,
         );
       }
 
@@ -180,7 +196,9 @@ const ScheduleHome = ({ session }: { session: Session }) => {
     } catch (error) {
       console.error('Error submitting message:', error);
       setMessages((prev) => prev.filter((msg) => msg !== message));
-      alert(error instanceof Error ? error.message : 'Failed to send message');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to send message',
+      );
     } finally {
       setLoading(false);
     }
@@ -240,14 +258,14 @@ const ScheduleHome = ({ session }: { session: Session }) => {
                     key={index}
                     className={cn(
                       'flex w-full',
-                      isUser ? 'justify-end' : 'justify-start'
+                      isUser ? 'justify-end' : 'justify-start',
                     )}>
                     <div
                       className={cn(
                         'max-w-[85%] lg:max-w-[70%] rounded-2xl p-4 shadow-md',
                         isUser
                           ? 'bg-[#b591ef] text-[#1a1423] rounded-tr-sm'
-                          : 'bg-[#1c1c21] text-gray-100 border border-white/5 rounded-tl-sm'
+                          : 'bg-[#1c1c21] text-gray-100 border border-white/5 rounded-tl-sm',
                       )}>
                       <p className='whitespace-pre-wrap text-[15px] leading-relaxed'>
                         {message.content}

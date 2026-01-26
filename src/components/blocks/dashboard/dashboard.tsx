@@ -23,6 +23,7 @@ import CreateOnSelect from './CreateOnSelect';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 // Type for FullCalendar events
 export interface CalendarEvent {
@@ -134,7 +135,7 @@ const Dashboard = () => {
       });
       const data = await response.json();
       if (data.event) {
-        alert('Event Updated!!');
+        toast.success('Event Updated!!');
       }
     } catch {
       info.revert();
@@ -167,7 +168,7 @@ const Dashboard = () => {
 
         // Close the dialog
         setDialogOpen(false);
-        alert('Event deleted successfully!');
+        toast.success('Event deleted successfully!');
       } else {
         const data = await response.json();
         throw new Error(
@@ -176,7 +177,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Error deleting event:', error);
-      alert(
+      toast.error(
         `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }

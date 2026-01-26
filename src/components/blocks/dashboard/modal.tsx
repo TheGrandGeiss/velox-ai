@@ -30,6 +30,7 @@ import {
   X,
   Trash2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Re-using the colorful categories for better UI
 const categoryConfig: Record<string, string> = {
@@ -220,7 +221,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
       const startDateTime = combineDateTime(
         eventDetails.start,
-        editedEvent.startTime
+        editedEvent.startTime,
       );
       const endDateTime = eventDetails.end
         ? combineDateTime(eventDetails.end, editedEvent.endTime)
@@ -253,7 +254,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       }
     } catch (error) {
       console.error('Error updating event:', error);
-      alert('Failed to update event.');
+      toast.error('Failed to update event.');
     } finally {
       setLoading(false);
     }

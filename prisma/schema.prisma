@@ -6,7 +6,7 @@ datasource db {
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
-  output = "../src/generated/client"
+  output        = "../src/generated/client"
 }
 
 model User {
@@ -15,13 +15,13 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  isOnboarded   Boolean @default(false)
+  isOnboarded   Boolean   @default(false)
 
   accounts      Account[]
   sessions      Session[]
   profile       Profile?
-  profileId     String?         @db.ObjectId
-  // Optional for WebAuthn support
+  profileId     String?   @db.ObjectId
+  
   Authenticator Authenticator[]
 
   createdAt DateTime @default(now())
@@ -70,7 +70,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @id @map("_id")
   userId               String  @db.ObjectId
@@ -87,21 +86,23 @@ model Authenticator {
 }
 
 model Profile {
-  id                String            @id @default(auto()) @map("_id") @db.ObjectId
-  user              User              @relation(fields: [userId], references: [id])
-  userId            String            @unique @db.ObjectId
-  image             String?
-  username          String
-  dob               DateTime
-  maxSessionLength  String // in minutes (30, 60, 90, 120)
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // 👇 ADDED onDelete: Cascade
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String            @unique @db.ObjectId
+  
+  image            String?
+  username         String
+  dob              DateTime
+  maxSessionLength String 
   weekendPreference WeekendPreference
-  mainGoal          String
-  wakeUpTime        String
-  sleepTime         String
-  // availability      Json
+  mainGoal         String
+  wakeUpTime       String
+  sleepTime        String
 
-  messages Message[] // 
-  events   Event[] // 
+  messages Message[] 
+  events   Event[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -114,8 +115,11 @@ model Message {
   createdAt DateTime @default(now())
 
   profileId String  @db.ObjectId
-  profile   Profile @relation(fields: [profileId], references: [id])
-  events    Event[] // 🔑 Message can have many events
+  
+  // 👇 ADDED onDelete: Cascade
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  events    Event[] 
 }
 
 model Event {
@@ -134,9 +138,14 @@ model Event {
   createdAt DateTime @default(now())
 
   profileId String   @db.ObjectId
-  profile   Profile  @relation(fields: [profileId], references: [id])
+  
+  // 👇 ADDED onDelete: Cascade (Deletes event if Profile is deleted)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
   messageId String?  @db.ObjectId
-  message   Message? @relation(fields: [messageId], references: [id])
+  
+  // 👇 ADDED onDelete: Cascade (Deletes event if Message is deleted - optional but cleaner)
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
