@@ -17,15 +17,15 @@ import {
   EventClickArg,
   EventDropArg,
 } from '@fullcalendar/core/index.js';
-// Removed Sheet imports since we converted the edit flow to a Modal
 import EditEventModal from './modal';
 import CreateOnSelect from './CreateOnSelect';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { getValidAccessToken } from '@/lib/actions/GetAccessToken';
+import { getUserProfile } from '@/lib/actions/profileAction';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react'; // 👈 Import the spinner
 
-// Type for FullCalendar events
 export interface CalendarEvent {
   id?: string;
   title: string;
@@ -43,10 +43,13 @@ const Dashboard = () => {
   const { data: session } = useSession();
   const { formatTime, formatDate } = useDateFormat();
 
+  // 🆕 LOADING STATE
+  const [isLoading, setIsLoading] = useState(true);
+
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [eventDetails, setEventDetails] = useState<Event>();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [sheetOpen, setSheetOpen] = useState<boolean>(false); // Used for Edit Modal visibility
+  const [sheetOpen, setSheetOpen] = useState<boolean>(false);
   const [SelectDateModalOpen, setSelectDateModalOpen] =
     useState<boolean>(false);
   const [selectableEvent, setSelectableEvent] = useState<{
@@ -56,64 +59,88 @@ const Dashboard = () => {
     endDate: Date;
   } | null>(null);
 
+  const [timeBounds, setTimeBounds] = useState({
+    min: '06:00:00',
+    max: '23:00:00',
+  });
+
   const calendarRef = useRef<FullCalendar>(null);
-  const [isMobile, setIsMobile] = useState(false);
 
+  // 🆕 UNIFIED DATA FETCHING (More robust)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    async function initDashboard() {
+      if (!session?.user) return;
 
-  useEffect(() => {
-    async function fetchEvents() {
       try {
-        const response = await fetch('/api/events', {
-          method: 'GET',
-          headers: { 'content-type': 'application/json' },
-        });
+        setIsLoading(true);
 
-        if (response.status === 401 || response.status === 403) {
+        // 1. Run both fetches at the same time (Faster)
+        const [profileData, eventsResponse] = await Promise.all([
+          getUserProfile(),
+          fetch('/api/events', {
+            method: 'GET',
+            headers: { 'content-type': 'application/json' },
+          }),
+        ]);
+
+        // 2. Handle Profile Time Bounds
+        if (profileData && profileData.wakeUpTime && profileData.sleepTime) {
+          const formatTimeBound = (time: string) => {
+            if (!time) return null;
+            return time.length === 5 ? `${time}:00` : time;
+          };
+          setTimeBounds({
+            min: formatTimeBound(profileData.wakeUpTime) || '06:00:00',
+            max: formatTimeBound(profileData.sleepTime) || '23:00:00',
+          });
+        }
+
+        // 3. Handle Events
+        if (eventsResponse.status === 401 || eventsResponse.status === 403) {
           router.push('/');
           return;
         }
 
-        const data = await response.json();
+        const eventsData = await eventsResponse.json();
 
-        // Map colors based on category to match the pastel image look
         const getColorByCategory = (cat: string) => {
           const map: Record<string, string> = {
-            work: '#b591ef', // Purple
-            personal: '#9ceca6', // Green
-            meeting: '#f2d785', // Yellow
-            urgent: '#f3a4b5', // Pink
+            work: '#b591ef',
+            personal: '#9ceca6',
+            meeting: '#f2d785',
+            urgent: '#f3a4b5',
           };
-          return map[cat.toLowerCase()] || '#dbeafe'; // Default light blue
+          return map[cat?.toLowerCase()] || '#dbeafe';
         };
 
-        const transformedEvents = (data.events || []).map((event: Message) => ({
-          id: event.id,
-          title: event.title,
-          start: new Date(event.start),
-          end: event.end ? new Date(event.end) : undefined,
-          category: event.category,
-          backgroundColor:
-            event.backgroundColor ||
-            getColorByCategory(event.category || 'work'),
-          borderColor: 'transparent',
-          textColor: '#1a1423',
-          description: event.description,
-        }));
+        const transformedEvents = (eventsData.events || []).map(
+          (event: Message) => ({
+            id: event.id,
+            title: event.title,
+            start: new Date(event.start),
+            end: event.end ? new Date(event.end) : undefined,
+            category: event.category,
+            backgroundColor:
+              event.backgroundColor ||
+              getColorByCategory(event.category || 'work'),
+            borderColor: 'transparent',
+            textColor: '#1a1423',
+            description: event.description,
+          }),
+        );
 
         setEvents(transformedEvents);
       } catch (error) {
-        console.error('Error fetching events:', error);
-        setEvents([]);
+        console.error('Failed to load dashboard data', error);
+        toast.error('Failed to load calendar');
+      } finally {
+        // 4. Stop loading only when everything is ready
+        setIsLoading(false);
       }
     }
-    fetchEvents();
-  }, [router]);
+
+    initDashboard();
+  }, [session, router]);
 
   async function handleEventChange(info: EventDropArg | EventResizeDoneArg) {
     try {
@@ -141,16 +168,11 @@ const Dashboard = () => {
       info.revert();
     }
   }
-  async function handleEventDelete() {
-    if (!eventDetails?.id) {
-      console.log('No event ID found');
-      return;
-    }
 
+  async function handleEventDelete() {
+    if (!eventDetails?.id) return;
     try {
-      if (!session?.user?.id) {
-        redirect('/signup');
-      }
+      if (!session?.user?.id) redirect('/signup');
       const accessToken = await getValidAccessToken(session.user.id);
       const response = await fetch(`/api/events/${eventDetails.id}`, {
         headers: {
@@ -161,29 +183,17 @@ const Dashboard = () => {
       });
 
       if (response.ok) {
-        // Remove the event from the >calendar
-        setEvents((prevEvents) =>
-          prevEvents.filter((event) => event.id !== eventDetails.id),
-        );
-
-        // Close the dialog
+        setEvents((prev) => prev.filter((e) => e.id !== eventDetails.id));
         setDialogOpen(false);
         toast.success('Event deleted successfully!');
-      } else {
-        const data = await response.json();
-        throw new Error(
-          `Failed to delete event: ${data.error || 'Unknown error'}`,
-        );
       }
     } catch (error) {
-      console.error('Error deleting event:', error);
-      toast.error(
-        `Failed to delete event: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      toast.error('Failed to delete event');
     }
   }
+
   const handleEventClick = (info: EventClickArg) => {
-    const eventData = {
+    setEventDetails({
       id: info.event.id,
       title: info.event.title,
       description: info.event.extendedProps.description || '',
@@ -193,37 +203,27 @@ const Dashboard = () => {
       backgroundColor: info.event.backgroundColor,
       textColor: info.event.textColor,
       createdAt: info.event.extendedProps.createdAt,
-    };
-    setEventDetails(eventData);
+    });
     setDialogOpen(true);
   };
 
   function handleEventUpdated(updatedEvent: Event) {
-    // Update the events state with the updated event
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === updatedEvent.id
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === updatedEvent.id
           ? {
-              ...event,
+              ...e,
               title: updatedEvent.title,
               description: updatedEvent.description,
               start: new Date(updatedEvent.start),
               end: updatedEvent.end ? new Date(updatedEvent.end) : undefined,
-              // Update colors if category changed
               category: updatedEvent.category,
             }
-          : event,
+          : e,
       ),
     );
-
-    // Update the eventDetails state if it's the same event
-    if (eventDetails?.id === updatedEvent.id) {
-      setEventDetails(updatedEvent);
-    }
-
-    // Close the Edit Modal
+    if (eventDetails?.id === updatedEvent.id) setEventDetails(updatedEvent);
     setSheetOpen(false);
-    // Also close the View Dialog if open, so we don't have stacked modals
     setDialogOpen(false);
   }
 
@@ -239,14 +239,28 @@ const Dashboard = () => {
 
   return (
     <div className='flex flex-col h-full w-full'>
-      <div className='flex-1 bg-[#1c1c21] md:rounded-[32px] shadow-2xl border border-white/5 relative'>
-        <div className='w-full h-full '>
+      <div className='flex-1 bg-[#1c1c21] md:rounded-[32px] shadow-2xl border border-white/5 relative overflow-hidden'>
+        {/* 🆕 LOADING OVERLAY */}
+        {isLoading && (
+          <div className='absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#1c1c21]'>
+            <Loader2 className='w-10 h-10 text-[#b591ef] animate-spin mb-4' />
+            <p className='text-gray-400 text-sm animate-pulse'>
+              Loading your schedule...
+            </p>
+          </div>
+        )}
+
+        {/* Only render FullCalendar if NOT loading (or keep it hidden). 
+            Rendering it hidden avoids layout shifts if you prefer opacity transition.
+            Here we just conditionally render for simplicity.
+        */}
+        <div
+          className={`w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}>
           <div
             className='h-full min-w-[800px] md:min-w-0'
             data-custom-calendar>
             <FullCalendar
               ref={calendarRef}
-              key={events.length}
               plugins={[
                 dayGridPlugin,
                 interactionPlugin,
@@ -266,6 +280,8 @@ const Dashboard = () => {
                 center: 'dayGridMonth,timeGridWeek,timeGridDay',
                 right: 'prev,today,next',
               }}
+              slotMinTime={timeBounds.min}
+              slotMaxTime={timeBounds.max}
               buttonText={{
                 today: 'Today',
                 month: 'Month',
@@ -276,8 +292,6 @@ const Dashboard = () => {
               titleFormat={{ month: 'long', year: 'numeric' }}
               nowIndicator={true}
               allDaySlot={false}
-              slotMinTime='00:00:00'
-              slotMaxTime='24:00:00'
               slotDuration='00:30:00'
               slotLabelInterval={'1:00'}
               dayHeaderFormat={{ weekday: 'long', day: 'numeric' }}
@@ -300,89 +314,79 @@ const Dashboard = () => {
                 };
               }}
             />
-
-            {/* --- MODALS --- */}
-
-            {/* 1. VIEW EVENT DIALOG (The Summary Card) */}
-            <Dialog
-              open={dialogOpen}
-              onOpenChange={setDialogOpen}>
-              <DialogContent className='bg-[#1c1c21] border border-white/10 text-white shadow-2xl rounded-3xl p-6'>
-                <div className='flex items-center gap-3 mb-4'>
-                  <div
-                    className='w-3 h-3 rounded-full'
-                    style={{
-                      backgroundColor: eventDetails?.backgroundColor || '#fff',
-                    }}></div>
-                  <span className='text-gray-400 text-sm font-medium uppercase tracking-wider'>
-                    {eventDetails?.category || 'Event'}
-                  </span>
-                </div>
-
-                <DialogTitle className='text-3xl font-bold mb-6'>
-                  {eventDetails?.title}
-                </DialogTitle>
-
-                <div className='space-y-4 mb-8 bg-[#0d0e12] p-4 rounded-2xl'>
-                  <div className='flex items-center gap-3 text-gray-300'>
-                    <span className='opacity-50'>📅</span>
-                    <span>
-                      {eventDetails?.start && formatDate(eventDetails.start)}
-                    </span>
-                  </div>
-                  <div className='flex items-center gap-3 text-gray-300'>
-                    <span className='opacity-50'>⏰</span>
-                    <span>
-                      {eventDetails?.start && formatTime(eventDetails.start)}
-                      {eventDetails?.end &&
-                        ` - ${formatTime(eventDetails.end)}`}
-                    </span>
-                  </div>
-                </div>
-
-                {eventDetails?.description && (
-                  <p className='text-gray-400 bg-[#0d0e12] p-4 rounded-2xl mb-6 leading-relaxed'>
-                    {eventDetails.description}
-                  </p>
-                )}
-
-                <div className='flex gap-3'>
-                  <button
-                    className='flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl font-medium transition-all'
-                    onClick={() => {
-                      // Open Edit Modal
-                      setSheetOpen(true);
-                      // Optional: Close View Dialog so they don't stack
-                      // setDialogOpen(false);
-                    }}>
-                    Edit
-                  </button>
-                  <button
-                    onClick={handleEventDelete}
-                    className='flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-3 rounded-xl font-medium transition-all'>
-                    Delete
-                  </button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* 2. CREATE EVENT MODAL */}
-            <CreateOnSelect
-              open={SelectDateModalOpen}
-              setOpen={setSelectDateModalOpen}
-              setEvents={setEvents}
-              selectedData={selectableEvent}
-            />
-
-            {/* 3. EDIT EVENT MODAL (Replaced Sheet) */}
-            <EditEventModal
-              open={sheetOpen}
-              onOpenChange={setSheetOpen}
-              eventDetails={eventDetails}
-              onEventUpdated={handleEventUpdated}
-            />
           </div>
         </div>
+
+        {/* --- MODALS (No Changes here) --- */}
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}>
+          <DialogContent className='bg-[#1c1c21] border border-white/10 text-white shadow-2xl rounded-3xl p-6'>
+            <div className='flex items-center gap-3 mb-4'>
+              <div
+                className='w-3 h-3 rounded-full'
+                style={{
+                  backgroundColor: eventDetails?.backgroundColor || '#fff',
+                }}></div>
+              <span className='text-gray-400 text-sm font-medium uppercase tracking-wider'>
+                {eventDetails?.category || 'Event'}
+              </span>
+            </div>
+
+            <DialogTitle className='text-3xl font-bold mb-6'>
+              {eventDetails?.title}
+            </DialogTitle>
+
+            <div className='space-y-4 mb-8 bg-[#0d0e12] p-4 rounded-2xl'>
+              <div className='flex items-center gap-3 text-gray-300'>
+                <span className='opacity-50'>📅</span>
+                <span>
+                  {eventDetails?.start && formatDate(eventDetails.start)}
+                </span>
+              </div>
+              <div className='flex items-center gap-3 text-gray-300'>
+                <span className='opacity-50'>⏰</span>
+                <span>
+                  {eventDetails?.start && formatTime(eventDetails.start)}
+                  {eventDetails?.end && ` - ${formatTime(eventDetails.end)}`}
+                </span>
+              </div>
+            </div>
+
+            {eventDetails?.description && (
+              <p className='text-gray-400 bg-[#0d0e12] p-4 rounded-2xl mb-6 leading-relaxed'>
+                {eventDetails.description}
+              </p>
+            )}
+
+            <div className='flex gap-3'>
+              <button
+                className='flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl font-medium transition-all'
+                onClick={() => setSheetOpen(true)}>
+                Edit
+              </button>
+              <button
+                onClick={handleEventDelete}
+                className='flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-3 rounded-xl font-medium transition-all'>
+                Delete
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <CreateOnSelect
+          open={SelectDateModalOpen}
+          setOpen={setSelectDateModalOpen}
+          setEvents={setEvents}
+          selectedData={selectableEvent}
+        />
+
+        <EditEventModal
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          eventDetails={eventDetails}
+          onEventUpdated={handleEventUpdated}
+        />
       </div>
     </div>
   );

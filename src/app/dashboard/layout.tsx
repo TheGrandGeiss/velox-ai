@@ -25,7 +25,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className='h-full p-6 overflow-y-auto custom-scrollbar'>
           <Sidebar />
         </div>
-        npm
       </div>
 
       {/* Main Content Wrapper */}
