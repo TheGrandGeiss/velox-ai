@@ -280,8 +280,8 @@ const Dashboard = () => {
                 center: 'dayGridMonth,timeGridWeek,timeGridDay',
                 right: 'prev,today,next',
               }}
-              slotMinTime={timeBounds.min}
-              slotMaxTime={timeBounds.max}
+              slotMinTime={timeBounds.min || '04:00:00'}
+              slotMaxTime={timeBounds.max || '00:00:00'}
               buttonText={{
                 today: 'Today',
                 month: 'Month',
